@@ -3,8 +3,83 @@
 #include <sstream>
 #include <algorithm>
 #include <strconv.hpp>
+#include <OutputHelper.hpp>
 
 namespace hex {
+	template<typename T, typename RT> requires std::is_floating_point_v<RT> && std::is_convertible_v<T, RT>
+	constexpr static RT to_float(T value)
+	{
+		return static_cast<RT>(value);
+	}
+	
+	inline int getHexValue(const char ch)
+	{
+		if (isdigit(ch))
+			return static_cast<int>(ch - '0');
+		else if (isalpha(ch))
+			return (static_cast<int>(str::toupper(ch) - 'A') + 10);
+		throw std::exception(str::stringify("getHexValue()\tFailed to convert \'", ch, "\' to hexadecimal!").c_str());
+	}
+	
+	inline int to_decimal(std::string hex, int from_base)
+	{
+		if (!hex.empty()) {
+			int power{ 1 }, result{ 0 };
+			for (auto ch{ hex.rbegin() }; ch != hex.rend(); ++ch) {
+				if (*ch == 'x')
+					break;
+				const auto val{ getHexValue(*ch) };
+				if (val >= from_base)
+					throw std::exception(std::string("to_decimal()\tFailed to convert \"" + hex + "\" Received invalid value \'" + std::to_string(val) + "\' from getHexValue()!").c_str());
+				result += val * power;
+				power = power * from_base;
+			}
+			return result;
+		}
+		return -1;
+	}
+
+
+	inline char getDecValue(const int num)
+	{
+		if (std::abs(num) >= 0 && std::abs(num) <= 9)
+			return static_cast<char>(num) + '0';
+		else if (std::abs(num) >= 10 && std::abs(num) <= 16)
+			return static_cast<char>(num - 10) + 'A';
+		throw std::exception(str::stringify("getDecValue()\tFailed to convert \"", num, "\" to decimal!").c_str());
+	}
+
+	inline std::string to_hexadecimal(int decimal, int from_base)
+	{
+		std::string hex;
+		while (decimal > 0) {
+			hex += getDecValue(decimal % from_base);
+			decimal /= from_base;
+		}
+		hex.back() = '\0';
+
+	}
+	/// @brief Allow std::string to be passed as decimal input
+	inline std::string to_hexadecimal(std::string decimal, int from_base) { return to_hexadecimal(std::move(str::stoi(std::move(decimal))), std::move(from_base)); }
+
+	struct HexPrinter {
+		const std::string _value;
+
+		constexpr HexPrinter(std::string value) : _value{ std::move(value) } {}
+
+		constexpr operator const std::string() const 
+		{
+
+			return _value;
+		}
+
+		friend std::ostream& operator<<(std::ostream& os, const HexPrinter& printer)
+		{
+			os << printer.operator const std::string();
+			return os;
+		}
+	};
+
 
 	template<class RT>
 	static std::enable_if_t<std::is_integral_v<RT>, RT> hex_to_int(const std::string& hex)
