@@ -111,6 +111,9 @@ namespace data {
 		/// @brief Copy Constructor
 		constexpr Size(const Size& o) : _type{ o._type }, _value{ o._value } {}
 
+		bool operator==(const Size& o) const { return _type == o._type && _value == o._value; }
+		bool operator!=(const Size& o) const { return !operator==(o); }
+
 		/**
 		 * @brief Return a copy of this value, converted to a given unit.
 		 * @param size	- The size type to convert to.
@@ -226,8 +229,8 @@ namespace data {
 		using IteratorT = std::vector<opt::Parameter>::const_iterator;
 		/**
 		 * @brief Advanced Constructor
-		 * @param it 
-		 * @param end 
+		 * @param it
+		 * @param end
 		 */
 		Conversion(IteratorT& it, const IteratorT& end)
 		{
@@ -248,28 +251,4 @@ namespace data {
 			}
 		}
 	};
-
-	// stream output operator for conversion
-	inline std::ostream& operator<<(std::ostream& os, const Conversion& printer)
-	{
-		if (printer._in.has_value() && printer._out.has_value()) {
-			if (!OutputSettings.output_only) { // print input values
-				const auto in{ printer._in.value().get() };
-				os		<< OutputSettings.Palette.set(UIElement::DATA_INPUT_VALUE) << FloatPrinter(in->_value) << color::reset;
-				if (!OutputSettings.hide_types) {
-					os  << ' '
-						<< OutputSettings.Palette.set(UIElement::DATA_INPUT_TYPE) << in->_type << color::reset;
-				}
-				os		<< OutputSettings.Palette.set(UIElement::DATA_EQUALS) << " = " << color::reset;
-			}
-			const auto out{ printer._out.value().get() };
-			os			<< OutputSettings.Palette.set(UIElement::DATA_OUTPUT_VALUE) << FloatPrinter(out->_value) << color::reset;
-			if (!OutputSettings.hide_types) {
-				os		<< ' '
-						<< OutputSettings.Palette.set(UIElement::DATA_OUTPUT_TYPE) << out->_type << color::reset;
-			}
-		}
-		return os;
-	}
-
 }

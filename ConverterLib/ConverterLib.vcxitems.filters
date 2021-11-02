@@ -1,27 +1,30 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="hex">
-      <UniqueIdentifier>{5b02cfb3-add6-433a-9448-1aa644885421}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="digital-data-units">
-      <UniqueIdentifier>{69190d49-0a50-4e82-9db1-5922bc4107d0}</UniqueIdentifier>
-    </Filter>
     <Filter Include="helpers">
       <UniqueIdentifier>{990465bd-43d6-4c54-b5f2-a74b438f76dd}</UniqueIdentifier>
     </Filter>
+    <Filter Include="converters">
+      <UniqueIdentifier>{20f64cfb-783e-4497-ae33-ff269ab5555f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="$(MSBuildThisFileDirectory)hex.hpp">
-      <Filter>hex</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)binary.hpp">
-      <Filter>digital-data-units</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)OutputHelper.hpp">
       <Filter>helpers</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)Argument.hpp">
+      <Filter>helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)data.hpp">
+      <Filter>converters</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)base.hpp">
+      <Filter>converters</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Printer.hpp">
+      <Filter>helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)ConverterColorPalette.hpp">
       <Filter>helpers</Filter>
     </ClInclude>
   </ItemGroup>

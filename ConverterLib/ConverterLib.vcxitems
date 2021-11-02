@@ -15,8 +15,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)Argument.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)binary.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)hex.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)ConverterColorPalette.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)data.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)base.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)OutputHelper.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Printer.hpp" />
   </ItemGroup>
 </Project>
