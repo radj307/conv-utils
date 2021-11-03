@@ -94,13 +94,14 @@ struct ArgumentPair {
 
 // define arguments
 inline const ArgumentPair
-	HELP{ "help", 'h', "Show this argument help display" },
-	CONVERT_DATASIZE{ "data", 'd', "Convert between digital data units. (B/kB/MB/GB/TB/PB/EB/ZB/YB)" },
-	CONVERT_HEXADECIMAL{ "hex", 'x', "Convert between hexadecimal and decimal digits." },
-	NUMBER_GROUPING{ "number-grouping", 'g', "Insert commas when printing large numbers. (\"1000000\" => \"1,000,000\")" },
-	OUTPUT_ONLY{ "output-only", 'o', "Show only the output values & types when printing results." },
-	HIDE_TYPES{ "no-type", 't', "Hides value types where applicable." },
-	NO_COLOR{ "no-color", "Disables colorized output." };
+HELP{ "help", 'h', "Show this argument help display" },
+CONVERT_DATASIZE{ "data", 'd', "Convert between digital data units. (B/kB/MB/GB/TB/PB/EB/ZB/YB)" },
+CONVERT_HEXADECIMAL{ "hex", 'x', "Convert between hexadecimal and decimal digits." },
+NUMBER_GROUPING{ "number-grouping", 'g', "Insert commas when printing large numbers. (\"1000000\" => \"1,000,000\")" },
+PRECISION{ "precision", "Specify the number of digits to show after the decimal point." },
+OUTPUT_ONLY{ "output-only", 'o', "Show only the output values & types when printing results." },
+HIDE_TYPES{ "no-type", 't', "Hides value types where applicable." },
+NO_COLOR{ "no-color", "Disables colorized output." };
 
 // iterable arguments used to print help:
 static const std::vector<ArgumentPair> argumentPairs{
@@ -108,6 +109,7 @@ static const std::vector<ArgumentPair> argumentPairs{
 	CONVERT_DATASIZE,
 	CONVERT_HEXADECIMAL,
 	NUMBER_GROUPING,
+	PRECISION,
 	OUTPUT_ONLY,
 	HIDE_TYPES,
 	NO_COLOR,

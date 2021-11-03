@@ -25,7 +25,7 @@ static struct { // Program-wide output settings
 	bool number_grouping{ false };
 	bool output_only{ false };
 	bool hide_types{ false };
-
+	size_t precision{ 32ull };
 } OutputSettings;
 
 /// @brief Print floating-point numbers with as-needed precision
@@ -39,8 +39,10 @@ struct FloatPrinter {
 	constexpr operator T() const { return _value; }
 	constexpr operator const std::string() const
 	{
-		const auto str{ str::stringify(std::fixed, OutputSettings.number_grouping ? str::NumberGrouping : str::Placeholder, _value) };
-		const size_t dpos{ str.find('.') }, last_pos{ str.find_last_of("123456789", dpos + 1u) };
+		const auto str{ str::stringify(std::fixed, std::setprecision(OutputSettings.precision), OutputSettings.number_grouping ? str::NumberGrouping : str::Placeholder, _value) };
+		const size_t dpos{ str.find('.') }, last_pos{ str.substr(dpos + 1u).find_last_of("123456789") };
+		if (!str::pos_valid(last_pos))
+			return str.substr(0u, dpos);
 		if (last_pos < dpos)
 			return str.substr(0u, dpos);
 		return str.substr(0u, dpos + last_pos);

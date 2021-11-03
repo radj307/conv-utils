@@ -63,4 +63,11 @@ inline void init_settings_from_args(opt::ParamsAPI& args)
 	// check for the no color argument
 	if (check_args(args, NO_COLOR))
 		Palette._active = false;
+
+	if (check_args(args, PRECISION)) {
+		if (const auto prec{ args.getv(PRECISION._arg.opt()) }; prec.has_value())
+			OutputSettings.precision = str::stoull(prec.value());
+		else
+			throw std::exception(str::stringify("Precision argument did not specify an unsigned integral!").c_str());
+	}
 }
