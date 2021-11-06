@@ -19,6 +19,10 @@ enum class UIElement {
 	HEX_EQUALS,
 	HEX_INPUT,
 	HEX_OUTPUT,
+	MOD_EQUALS,
+	MOD_MODULO,
+	MOD_INPUT,
+	MOD_OUTPUT,
 };
 
 static struct { // Program-wide output settings
@@ -40,12 +44,12 @@ struct FloatPrinter {
 	constexpr operator const std::string() const
 	{
 		const auto str{ str::stringify(std::fixed, std::setprecision(OutputSettings.precision), OutputSettings.number_grouping ? str::NumberGrouping : str::Placeholder, _value) };
-		const size_t dpos{ str.find('.') }, last_pos{ str.substr(dpos + 1u).find_last_of("123456789") };
+		const size_t dpos{ str.find('.') }, last_pos{ str.substr(dpos + 1ull).find_last_of("123456789") };
 		if (!str::pos_valid(last_pos))
-			return str.substr(0u, dpos);
+			return str.substr(0ull, dpos);
 		if (last_pos < dpos)
-			return str.substr(0u, dpos);
-		return str.substr(0u, dpos + last_pos);
+			return str.substr(0ull, dpos);
+		return str.substr(0ull, dpos + last_pos);
 	}
 
 	friend std::ostream& operator<<(std::ostream& os, const FloatPrinter<T>& obj)

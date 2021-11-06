@@ -19,20 +19,24 @@ int main(const int argc, char** argv, char** envp)
 
 		init_settings_from_args(args); // init settings
 
-		const bool do_help{ args.empty() || check_args(args, HELP) };
+		const bool do_help{ args.empty() || check_args(args, MODE_HELP) };
 
 		// Check if args are empty / help arg included
 		if (do_help)
-			mode_help(program_name + " <MODE> [OPTIONS] [PARAMETERS]", { HELP, CONVERT_DATASIZE, CONVERT_HEXADECIMAL }, { NUMBER_GROUPING, OUTPUT_ONLY, HIDE_TYPES, NO_COLOR });
-
+			mode_help(program_name + " <MODE> [OPTIONS] [PARAMETERS]",
+					  { MODE_HELP, MODE_DATA, MODE_HEX, MODE_MOD },
+					  { NUMBER_GROUPING, PRECISION, OUTPUT_ONLY, HIDE_TYPES, NO_COLOR }
+		);
 		// Get all parameters
 		const auto params{ args.getAllParameters<std::vector<opt::Parameter>>() };
 
 		// Select primary mode
-		if (check_args(args, CONVERT_DATASIZE)) // convert params as data sizes
+		if (check_args(args, MODE_DATA)) // convert params as data sizes
 			mode_data(params);
-		else if (check_args(args, CONVERT_HEXADECIMAL)) // convert params as hexadecimal/decimal
+		else if (check_args(args, MODE_HEX)) // convert params as hexadecimal/decimal
 			mode_hex(params);
+		else if (check_args(args, MODE_MOD))
+			mode_mod(params);
 		else if (!do_help)
 			throw std::exception("No mode was specified!");
 

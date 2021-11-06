@@ -39,9 +39,24 @@ namespace base {
 		return -1;
 	}
 
-	struct Conversion {
-		using VariantT = std::variant<std::monostate, int, std::string>;
-		VariantT _in, _out;
-		Conversion(const std::string& input) : _in{ input }, _out{ to_decimal(input) } {}
+	enum class ValueBase {
+		INVALID,
+		DECIMAL,
+		HEXADECIMAL,
 	};
+
+	inline constexpr bool is_hex_char(const char& ch)
+	{
+		const auto upper{ str::toupper(ch) };
+		return upper >= 'A' && upper <= 'F';
+	}
+
+	inline ValueBase detect_base(const std::string& arg)
+	{
+		if (arg.find("0x") == 0ull || std::any_of(arg.begin(), arg.end(), is_hex_char))
+			return ValueBase::HEXADECIMAL;
+		else if (std::all_of(arg.begin(), arg.end(), [](auto&& ch) { return isdigit(ch) || ch == '.' || ch == ','; }))
+			return ValueBase::DECIMAL;
+		return ValueBase::INVALID;
+	}
 }

@@ -3,6 +3,7 @@
 #include <OutputHelper.hpp>
 #include <data.hpp>
 #include <base.hpp>
+#include <modulo.hpp>
 #include <Printer.hpp>
 /**
  * @namespace conv_mode
@@ -26,12 +27,14 @@ namespace conv_mode {
 	// MODE: Hexadecimal Conversions
 	inline void mode_hex(const std::vector<opt::Parameter>& params)
 	{
-		for (auto arg{ params.begin() }; arg != params.end(); ++arg) {
-			bool negative{ arg->front() == '-' };
-			if (std::string argstr{ negative ? arg->substr(1u) : *arg }; argstr.find("0x") == 0u || std::any_of(argstr.begin(), argstr.end(), [](auto&& c) { const auto ch{ str::toupper(c) };  return ch >= 'A' && ch <= 'F'; })) // hex input
-				std::cout << IntPrinter(negative ? -base::to_decimal(argstr) : base::to_decimal(argstr)) << '\n';
-			else // decimal input:
-				std::cout << (negative ? "-" : "") << (OutputSettings.hide_types ? "" : "0x") << str::hex(str::stoll(argstr), std::uppercase, (OutputSettings.number_grouping ? str::NumberGrouping : str::Placeholder)) << '\n';
-		}
+		for (auto& arg : params)
+			std::cout << base::negative_abstractor(arg) << '\n';
+	}
+
+	// MODE: Modulo calculator
+	inline void mode_mod(const std::vector<opt::Parameter>& params)
+	{
+		for (auto it{ params.begin() }; it != params.end(); ++it)
+			std::cout << modulo::Conversion(it, params.end()) << '\n';
 	}
 }

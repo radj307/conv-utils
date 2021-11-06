@@ -15,5 +15,9 @@ PaletteT Palette{ {
 	{ UIElement::HEX_EQUALS, { color::intense_yellow, color::Layer::FOREGROUND, color::FormatFlag::BOLD } },
 	{ UIElement::HEX_INPUT, { color::white, color::Layer::FOREGROUND, color::FormatFlag::BOLD } },
 	{ UIElement::HEX_OUTPUT, { color::white, color::Layer::FOREGROUND, color::FormatFlag::BOLD } },
+	{ UIElement::MOD_EQUALS, { color::intense_yellow, color::Layer::FOREGROUND, color::FormatFlag::BOLD } },
+	{ UIElement::MOD_MODULO, { color::intense_yellow, color::Layer::FOREGROUND, color::FormatFlag::BOLD } },
+	{ UIElement::MOD_INPUT, { color::white, color::Layer::FOREGROUND, color::FormatFlag::BOLD } },
+	{ UIElement::MOD_OUTPUT, { color::white, color::Layer::FOREGROUND, color::FormatFlag::BOLD } },
 	}
 };
