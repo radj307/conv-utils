@@ -161,6 +161,8 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Argument.hpp" />
+    <ClInclude Include="CompileHelpDoc.hpp" />
     <ClInclude Include="Mode.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

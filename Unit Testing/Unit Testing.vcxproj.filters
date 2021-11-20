@@ -24,5 +24,11 @@
     <ClInclude Include="base_Test.hpp">
       <Filter>Fixtures</Filter>
     </ClInclude>
+    <ClInclude Include="modulo_Test.hpp">
+      <Filter>Fixtures</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>

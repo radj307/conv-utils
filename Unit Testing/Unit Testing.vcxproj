@@ -40,6 +40,7 @@
   <ItemGroup>
     <ClInclude Include="base_Test.hpp" />
     <ClInclude Include="data_Test.hpp" />
+    <ClInclude Include="modulo_Test.hpp" />
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>

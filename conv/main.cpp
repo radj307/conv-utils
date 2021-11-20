@@ -35,7 +35,7 @@ int main(const int argc, char** argv, char** envp)
 			mode_data(params);
 		else if (check_args(args, MODE_HEX)) // convert params as hexadecimal/decimal
 			mode_hex(params);
-		else if (check_args(args, MODE_MOD))
+		else if (check_args(args, MODE_MOD)) // calculate modulo operations
 			mode_mod(params);
 		else if (!do_help)
 			throw std::exception("No mode was specified!");

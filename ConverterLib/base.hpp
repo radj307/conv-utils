@@ -6,7 +6,12 @@
 #include <OutputHelper.hpp>
 
 namespace base {
-	inline int getHexValue(const char ch)
+	/**
+	 * @brief Converts a given character to its equivalent hexadecimal value.
+	 * @param ch	- Input character. 1-9, A=10, B=11, C=12, D=13, E=14, F=15. Any character outside of this range will throw an exception.
+	 * @returns int
+	 */
+	inline int getHexValue(const char ch) noexcept(false)
 	{
 		if (isdigit(ch))
 			return static_cast<int>(ch - '0');
@@ -21,8 +26,12 @@ namespace base {
 	 * @param from_base - Number of distinct values per digit position.
 	 * @returns int
 	 */
-	inline int to_decimal(std::string hex, int from_base = 16)
+	inline int to_decimal(std::string hex) noexcept(false)
 	{
+		const auto from_base{ 16 };
+		bool is_negative{ hex.front() == '-' };
+		if (is_negative)
+			hex = hex.substr(1ull);
 		if (!hex.empty()) {
 			int power{ 1 }, result{ 0 };
 			for (auto ch{ hex.rbegin() }; ch != hex.rend(); ++ch) {
@@ -34,11 +43,21 @@ namespace base {
 				result += val * power;
 				power = power * from_base;
 			}
-			return result;
+			return is_negative ? -result : result;
 		}
 		return -1;
 	}
 
+	inline std::string to_hex(auto value) noexcept(false)
+	{
+		const bool is_negative{ value < 0 };
+		return str::hex(std::uppercase, (OutputSettings.number_grouping ? str::NumberGrouping : str::Placeholder), (is_negative ? "-0x" : (OutputSettings.hide_types ? "" : "0x")));
+	}
+
+	/**
+	 * @enum ValueBase
+	 * @brief Used to represent the base of a number. Only used internally within the base namespace.
+	 */
 	enum class ValueBase {
 		INVALID,
 		DECIMAL,

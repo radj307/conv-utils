@@ -23,5 +23,11 @@
     <ClInclude Include="Mode.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Argument.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CompileHelpDoc.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

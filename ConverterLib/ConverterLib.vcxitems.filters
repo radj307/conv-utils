@@ -15,9 +15,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)OutputHelper.hpp">
       <Filter>helpers</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)Argument.hpp">
-      <Filter>helpers</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)data.hpp">
       <Filter>converters</Filter>
     </ClInclude>
