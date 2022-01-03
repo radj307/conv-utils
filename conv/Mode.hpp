@@ -20,21 +20,21 @@ namespace conv_mode {
 	}
 
 	// MODE: Data Size Conversions
-	inline void mode_data(const std::vector<opt::Parameter>& params)
+	inline void mode_data(const std::vector<std::string>& params)
 	{
 		for (auto arg{ params.begin() }; arg != params.end(); ++arg)
 			std::cout << data::Conversion(arg, params.end()) << '\n';
 	}
 
 	// MODE: Hexadecimal Conversions
-	inline void mode_hex(const std::vector<opt::Parameter>& params)
+	inline void mode_hex(const std::vector<std::string>& params)
 	{
 		for (auto& arg : params)
 			std::cout << base::negative_abstractor(arg) << '\n';
 	}
 
 	// MODE: Modulo Calculator
-	inline void mode_mod(const std::vector<opt::Parameter>& params)
+	inline void mode_mod(const std::vector<std::string>& params)
 	{
 		for (auto it{ params.begin() }; it != params.end(); ++it) {
 			try {
@@ -51,7 +51,7 @@ namespace conv_mode {
 					throw std::exception(std::string("Unmatched value: \"" + here + "\"").c_str());
 				modulo::operation(here, next);
 			} catch (std::exception& ex) {
-				std::cout << sys::term::error << ex.what() << std::endl;
+				std::cerr << term::error << ex.what() << std::endl;
 			}
 		}
 	}

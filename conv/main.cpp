@@ -1,21 +1,34 @@
+#include <make_exception.hpp>
 #include <TermAPI.hpp>
-#include <ParamsAPI.hpp>
-#include <resolve-path.hpp>
+#include <ParamsAPI2.hpp>
+#include <env.hpp>
 #include <str.hpp>
 
 #include "Mode.hpp"
 using namespace conv_mode;
 
 /// @brief Check for setting arguments and apply to settings
-inline void init_settings_from_args(opt::ParamsAPI& args);
+inline void init_settings_from_args(opt::ParamsAPI2& args);
+
+#include <MathParse.hpp>
 
 // MAIN
-int main(const int argc, char** argv, char** envp)
+int main(const int argc, char** argv)
 {
 	try {
-		std::cout << sys::term::EnableANSI << std::fixed; // enable ANSI, force standard notation
-		opt::ParamsAPI args{ argc, argv };
-		const auto [program_path, program_name] { opt::resolve_split_path(envp, args.arg0().value_or(argv[0])) };
+		std::cout << term::EnableANSI << std::fixed; // enable ANSI, force standard notation
+		opt::ParamsAPI2 args{ argc, argv };
+		env::PATH path;
+		const auto [program_path, program_name] { path.resolve_split(args.arg0().value_or(argv[0])) };
+
+		std::vector<opt::ArgContainerType> operations;
+		const auto mode_tuple{ std::make_tuple(MODE_DATA.flag(), MODE_DATA.opt(), MODE_HEX.flag(), MODE_HEX.opt(), MODE_MOD.flag(), MODE_MOD.opt()) };
+		for (auto pos{ args.find_any<opt::Flag, opt::Option>(mode_tuple, args.begin(), args.end()) }, last{ pos }; pos != args.end(); last = pos, pos = args.find_any<opt::Flag, opt::Option>(mode_tuple, pos + 1, args.end())) {
+			operations.emplace_back(args.get_range(last, pos));
+		}
+
+		math::recog::Tokenizer tkiz{ "5 * 2 + 1" };
+		const auto tokens{tkiz.tokenize()};
 
 		init_settings_from_args(args); // init settings
 
@@ -23,12 +36,12 @@ int main(const int argc, char** argv, char** envp)
 
 		// Check if args are empty / help arg included
 		if (do_help)
-			mode_help(program_name + " <MODE> [OPTIONS] [PARAMETERS]",
+			mode_help(program_name.generic_string() + " <MODE> [OPTIONS] [PARAMETERS]",
 					  { MODE_HELP, MODE_DATA, MODE_HEX, MODE_MOD },
 					  { NUMBER_GROUPING, PRECISION, OUTPUT_ONLY, HIDE_TYPES, NO_COLOR }
 		);
 		// Get all parameters
-		const auto params{ args.getAllParameters<std::vector<opt::Parameter>>() };
+		const auto params{ args.typegetv_all<opt::Parameter>() };
 
 		// Select primary mode
 		if (check_args(args, MODE_DATA)) // convert params as data sizes
@@ -42,15 +55,15 @@ int main(const int argc, char** argv, char** envp)
 
 		return 0;
 	} catch (std::exception& ex) { // catch std::exception
-		std::cout << sys::term::error << ex.what() << std::endl;
+		std::cerr << term::error << ex.what() << std::endl;
 		return -1;
 	} catch (...) { // catch unknown exception
-		std::cout << sys::term::error << "An unknown exception occurred!" << std::endl;
+		std::cerr << term::error << "An unknown exception occurred!" << std::endl;
 		return -2;
 	}
 }
 
-inline void init_settings_from_args(opt::ParamsAPI& args)
+inline void init_settings_from_args(opt::ParamsAPI2& args)
 {
 	// check number grouping args
 	if (check_args(args, NUMBER_GROUPING))
@@ -66,12 +79,12 @@ inline void init_settings_from_args(opt::ParamsAPI& args)
 
 	// check for the no color argument
 	if (check_args(args, NO_COLOR))
-		Palette._active = false;
+		Palette.setActive(false);
 
 	if (check_args(args, PRECISION)) {
-		if (const auto prec{ args.getv(PRECISION._arg.opt()) }; prec.has_value())
+		if (const auto prec{ args.typegetv<opt::Option>(PRECISION.opt()) }; prec.has_value())
 			OutputSettings.precision = str::stoull(prec.value());
 		else
-			throw std::exception(str::stringify("Precision argument did not specify an unsigned integral!").c_str());
+			throw make_exception("Precision argument did not specify an unsigned integral!");
 	}
 }

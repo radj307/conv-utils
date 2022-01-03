@@ -1,5 +1,5 @@
 #pragma once
-#include <ParamsAPI.hpp>
+#include <ParamsAPI2.hpp>
 
 #pragma region ARGUMENT_OBJECTS
 struct ArgumentPair;
@@ -57,8 +57,7 @@ public:
 	constexpr explicit operator const char() const { return _flag.value(); }
 };
 /// @brief Represents an argument, paired with a short usage description for the help display.
-struct ArgumentPair {
-	const Argument _arg;
+struct ArgumentPair : public Argument {
 	const std::string _desc;
 
 	/**
@@ -67,21 +66,19 @@ struct ArgumentPair {
 	 * @param flag_name		- Name of the flag (single-dash prefix, single-character) used to specify this argument.
 	 * @param description	- Brief description of what this argument does & how to use it.
 	 */
-	constexpr ArgumentPair(std::string opt_name, char flag_name, std::string description) : _arg{ std::move(opt_name), std::move(flag_name) }, _desc{ std::move(description) } {}
+	constexpr ArgumentPair(std::string opt_name, char flag_name, std::string description) : Argument{ std::move(opt_name), std::move(flag_name) }, _desc{ std::move(description) } {}
 	/**
 	 * @brief Constructor that accepts an option name & a description for the help display.
 	 * @param opt_name		- Name of the option (double-dash prefix, full word) used to specify this argument.
 	 * @param description	- Brief description of what this argument does & how to use it.
 	 */
-	constexpr ArgumentPair(std::string opt_name, std::string description) : _arg{ std::move(opt_name) }, _desc{ std::move(description) } {}
+	constexpr ArgumentPair(std::string opt_name, std::string description) : Argument{ std::move(opt_name) }, _desc{ std::move(description) } {}
 	/**
 	 * @brief Constructor that accepts a flag & a description for the help display.
 	 * @param flag_name		- Name of the flag (single-dash prefix, single-character) used to specify this argument.
 	 * @param description	- Brief description of what this argument does & how to use it.
 	 */
-	constexpr ArgumentPair(char flag_name, std::string description) : _arg{ std::move(flag_name) }, _desc{ std::move(description) } {}
-
-	operator Argument() const { return _arg; }
+	constexpr ArgumentPair(char flag_name, std::string description) : Argument{ std::move(flag_name) }, _desc{ std::move(description) } {}
 
 	friend std::ostream& operator<<(std::ostream& os, const ArgumentPair& argpr)
 	{
@@ -104,13 +101,12 @@ OUTPUT_ONLY{ "output-only", 'o', "Show only the output values & types when print
 HIDE_TYPES{ "no-type", 't', "Hides value types where applicable." },
 NO_COLOR{ "no-color", "Disables colorized output." };
 
-inline bool check_args(opt::ParamsAPI& inst, const Argument& arg)
+inline bool check_args(opt::ParamsAPI2& inst, const Argument& arg)
 {
 	return (arg.has_flag()
-		? inst.check_flag(arg.operator const char())
+		? inst.check<opt::Flag>(arg.operator const char())
 		: false)
 		|| (arg.has_opt()
-			? inst.check_opt(arg.operator const std::string())
+			? inst.check<opt::Option>(arg.operator const std::string())
 			: false);
 }
-inline bool check_args(opt::ParamsAPI& inst, const ArgumentPair& arg) { return check_args(inst, arg.operator Argument()); }

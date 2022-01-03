@@ -2,7 +2,7 @@
 #include <iostream>
 #include <sstream>
 #include <algorithm>
-#include <strconv.hpp>
+#include <str.hpp>
 #include <OutputHelper.hpp>
 
 namespace base {
@@ -51,7 +51,7 @@ namespace base {
 	inline std::string to_hex(auto value) noexcept(false)
 	{
 		const bool is_negative{ value < 0 };
-		return str::hex(std::uppercase, (OutputSettings.number_grouping ? str::NumberGrouping : str::Placeholder), (is_negative ? "-0x" : (OutputSettings.hide_types ? "" : "0x")));
+		return str::stringify(std::hex, std::uppercase, (OutputSettings.number_grouping ? str::NumberGrouping : str::Placeholder), (is_negative ? "-0x" : (OutputSettings.hide_types ? "" : "0x")));
 	}
 
 	/**

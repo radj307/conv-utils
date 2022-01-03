@@ -3,7 +3,7 @@
 #include <strmanip.hpp>
 #include <strconv.hpp>
 #include <OutputHelper.hpp>
-#include <ParamsAPI.hpp>
+#include <ParamsAPI2.hpp>
 
 namespace data {
 	/**
@@ -226,7 +226,7 @@ namespace data {
 		 */
 		Conversion(Size in, Unit out) : _in{ std::make_unique<Size>(std::move(in)) }, _out{ std::make_unique<Size>(std::move(_in.value().get()->convert_to(out))) } {}
 
-		using IteratorT = std::vector<opt::Parameter>::const_iterator;
+		using IteratorT = std::vector<std::string>::const_iterator;
 		/**
 		 * @brief Advanced Constructor
 		 * @param it

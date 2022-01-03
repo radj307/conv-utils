@@ -7,18 +7,18 @@ inline std::vector<std::string> compile_help_doc(const std::string& usage_str, s
 	std::vector<std::string> lines;
 
 	size_t margin{ 0ull };
-	for (auto& [arg, _] : modes)
-		if (arg.has_opt() && arg.opt().size() > margin)
-			margin = arg.opt().size();
-	for (auto& [arg, _] : options)
-		if (arg.has_opt() && arg.opt().size() > margin)
-			margin = arg.opt().size();
+	for (auto& it : modes)
+		if (it.has_opt() && it.opt().size() > margin)
+			margin = it.opt().size();
+	for (auto& it : options)
+		if (it.has_opt() && it.opt().size() > margin)
+			margin = it.opt().size();
 	margin += 8ull;
 
 	const auto compile_argument_vector{ [&lines, &margin](const std::vector<ArgumentPair>& vec) {
-		for (auto& [arg, desc] : vec) {
-			const auto ln{ str::stringify(str::stringify(arg.has_flag() ? std::string("-") + arg.flag() : "  ", "  ", arg.has_opt() ? std::string("--") + arg.opt() : "")) };
-			lines.emplace_back(str::stringify("  ", ln, str::VIndent(static_cast<std::streamsize>(margin), ln.size()), desc));
+		for (auto& it : vec) {
+			const auto ln{ str::stringify(str::stringify(it.has_flag() ? std::string("-") + it.flag() : "  ", "  ", it.has_opt() ? std::string("--") + it.opt() : "")) };
+			lines.emplace_back(str::stringify("  ", ln, str::VIndent(static_cast<std::streamsize>(margin), ln.size()), it._desc));
 		}
 	} };
 

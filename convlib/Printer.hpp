@@ -45,7 +45,7 @@ namespace base {
 		const bool is_negative{ arg.front() == '-' };
 		switch (detect_base(arg)) {
 		case ValueBase::DECIMAL:
-			return str::stringify(get_conversion_prefix(arg, is_negative), str::hex(str::stoll(arg), std::uppercase, (OutputSettings.number_grouping ? str::NumberGrouping : str::Placeholder), (is_negative ? "-0x" : (OutputSettings.hide_types ? "" : "0x"))), Palette.reset());
+			return str::stringify(get_conversion_prefix(arg, is_negative), str::stringify(std::hex, str::stoll(arg), std::uppercase, (OutputSettings.number_grouping ? str::NumberGrouping : str::Placeholder), (is_negative ? "-0x" : (OutputSettings.hide_types ? "" : "0x"))), Palette.reset());
 		case ValueBase::HEXADECIMAL:
 			return str::stringify(get_conversion_prefix(arg, is_negative), IntPrinter(is_negative ? -to_decimal(arg) : to_decimal(arg)), Palette.reset());
 		case ValueBase::INVALID: [[fallthrough]];
