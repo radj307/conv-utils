@@ -204,7 +204,7 @@ namespace math {
 			}
 		};
 
-		struct TokenParser : public ::token::TokenParserBase {
+		struct TokenParser : public ::token::TokenParserBase<Token> {
 			
 		};
 	}
