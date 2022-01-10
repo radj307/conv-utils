@@ -5,12 +5,10 @@
 #include <str.hpp>
 
 #include "Mode.hpp"
-using namespace conv_mode;
+using namespace conv;
 
 /// @brief Check for setting arguments and apply to settings
 inline void init_settings_from_args(opt::ParamsAPI2& args);
-
-#include <MathParse.hpp>
 
 // MAIN
 int main(const int argc, char** argv)
@@ -27,9 +25,6 @@ int main(const int argc, char** argv)
 			operations.emplace_back(args.get_range(last, pos));
 		}
 
-		math::recog::Tokenizer tkiz{ "5 * 2 + 1" };
-		const auto tokens{tkiz.tokenize()};
-
 		init_settings_from_args(args); // init settings
 
 		const bool do_help{ args.empty() || check_args(args, MODE_HELP) };
@@ -45,11 +40,11 @@ int main(const int argc, char** argv)
 
 		// Select primary mode
 		if (check_args(args, MODE_DATA)) // convert params as data sizes
-			mode_data(params);
+			mode::data_conv(params);
 		else if (check_args(args, MODE_HEX)) // convert params as hexadecimal/decimal
-			mode_hex(params);
+			mode::hex_conv(params);
 		else if (check_args(args, MODE_MOD)) // calculate modulo operations
-			mode_mod(params);
+			mode::modulo_calc(params);
 		else if (!do_help)
 			throw std::exception("No mode was specified!");
 
