@@ -27,9 +27,9 @@ namespace data { // DATA OUTPUT OPERATORS
 	}
 }
 namespace base {
-	inline std::string get_conversion_prefix(const std::string& in, const bool negative)
+	inline std::string get_conversion_prefix(const std::string& in)
 	{
-		return (negative ? "-" : "") + (OutputSettings.output_only ? std::string{} :
+		return (OutputSettings.output_only ? std::string{} :
 										str::stringify(
 											Palette.set(UIElement::HEX_INPUT),
 											in,
@@ -40,17 +40,16 @@ namespace base {
 											Palette.set(UIElement::HEX_OUTPUT)));
 	}
 
-	inline std::string negative_abstractor(std::string arg)
+	inline std::string hexconv(std::string arg)
 	{
-		const bool is_negative{ arg.front() == '-' };
 		switch (detect_base(arg)) {
 		case ValueBase::DECIMAL:
-			return str::stringify(get_conversion_prefix(arg, is_negative), str::stringify(std::hex, str::stoll(arg), std::uppercase, (OutputSettings.number_grouping ? str::NumberGrouping : str::Placeholder), (is_negative ? "-0x" : (OutputSettings.hide_types ? "" : "0x"))), Palette.reset());
+			return str::stringify(get_conversion_prefix(arg), str::stringify(std::hex, str::stoll(arg), std::uppercase, (OutputSettings.number_grouping ? str::NumberGrouping : str::Placeholder), (OutputSettings.hide_types ? "" : "0x")), Palette.reset());
 		case ValueBase::HEXADECIMAL:
-			return str::stringify(get_conversion_prefix(arg, is_negative), IntPrinter(is_negative ? -to_decimal(arg) : to_decimal(arg)), Palette.reset());
+			return str::stringify(get_conversion_prefix(arg), IntPrinter(to_decimal(arg)), Palette.reset());
 		case ValueBase::INVALID: [[fallthrough]];
 		default:
-			throw std::exception(str::stringify("Invalid number: \"", (is_negative ? "-" : ""), arg, "\"!").c_str());
+			throw std::exception(str::stringify("Invalid number: \"", arg, "\"!").c_str());
 		}
 	}
 }

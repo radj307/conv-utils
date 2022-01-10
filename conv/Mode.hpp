@@ -30,7 +30,8 @@ namespace conv::mode {
 	inline void hex_conv(const std::vector<std::string>& params)
 	{
 		for (auto& arg : params)
-			std::cout << base::negative_abstractor(arg) << '\n';
+			std::cout << base::hexconv(arg) << '\n';
+	}
 	}
 
 	// MODE: Modulo Calculator

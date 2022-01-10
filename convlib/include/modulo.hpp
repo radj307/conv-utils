@@ -7,7 +7,7 @@ namespace modulo {
 	template<typename T>
 	concept numtype = std::same_as<T, IntT> || std::is_same_v<T, FloatT>;
 
-	enum class NumberType {
+	enum class NumberType : char {
 		FLOAT,
 		INT,
 	};

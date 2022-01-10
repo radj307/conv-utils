@@ -15,7 +15,7 @@ int main(const int argc, char** argv)
 {
 	try {
 		std::cout << term::EnableANSI << std::fixed; // enable ANSI, force standard notation
-		opt::ParamsAPI2 args{ argc, argv };
+		opt::ParamsAPI2 args{ argc, argv, "precision" };
 		env::PATH path;
 		const auto [program_path, program_name] { path.resolve_split(args.arg0().value_or(argv[0])) };
 
@@ -43,13 +43,15 @@ int main(const int argc, char** argv)
 			mode::data_conv(params);
 		else if (check_args(args, MODE_HEX)) // convert params as hexadecimal/decimal
 			mode::hex_conv(params);
+		else if (check_args(args, MODE_UNIT))
+			mode::unit_conv(params);
 		else if (check_args(args, MODE_MOD)) // calculate modulo operations
 			mode::modulo_calc(params);
 		else if (!do_help)
 			throw std::exception("No mode was specified!");
 
 		return 0;
-	} catch (std::exception& ex) { // catch std::exception
+	} catch (const std::exception& ex) { // catch std::exception
 		std::cerr << term::error << ex.what() << std::endl;
 		return -1;
 	} catch (...) { // catch unknown exception
@@ -76,10 +78,7 @@ inline void init_settings_from_args(opt::ParamsAPI2& args)
 	if (check_args(args, NO_COLOR))
 		Palette.setActive(false);
 
-	if (check_args(args, PRECISION)) {
-		if (const auto prec{ args.typegetv<opt::Option>(PRECISION.opt()) }; prec.has_value())
-			OutputSettings.precision = str::stoull(prec.value());
-		else
-			throw make_exception("Precision argument did not specify an unsigned integral!");
-	}
+	if (const auto prec{ args.typegetv<opt::Option>(PRECISION.opt()) }; prec.has_value())
+		OutputSettings.precision = str::stoull(prec.value());
+	
 }
