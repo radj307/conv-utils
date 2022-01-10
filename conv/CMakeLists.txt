@@ -14,9 +14,15 @@ file(GLOB SRCS
 	RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
 	CONFIGURE_DEPENDS
 	"*.h*"
-	"*.c*"
 )
 
-add_executable(conv "main.cpp" ${SRCS})
+add_executable(conv "main.cpp")
+
+include(PrependEach)
+PREPEND_EACH(SRCS_ABS ${SRCS} "${CMAKE_CURRENT_SOURCE_DIR}")
+target_sources(conv PUBLIC
+	"$<BUILD_INTERFACE:${SRCS_ABS}>"
+	"$<INSTALL_INTERFACE:${SRCS}>"
+)
 
 target_link_libraries(conv PUBLIC optlib TermAPI convlib)
