@@ -4,6 +4,7 @@
 #include <data.hpp>
 #include <base.hpp>
 #include <modulo.hpp>
+#include <unit.hpp>
 #include <Printer.hpp>
 #include "CompileHelpDoc.hpp"
 
@@ -32,6 +33,19 @@ namespace conv::mode {
 		for (auto& arg : params)
 			std::cout << base::hexconv(arg) << '\n';
 	}
+
+	// MODE: Length Measurement Unit Conversion
+	inline void unit_conv(const std::vector<std::string>& params)
+	{
+		(std::cout << std::fixed).precision(10);
+		for (auto it{ params.begin() }; it < params.end(); ++it) {
+			if (std::distance(it, params.end()) >= 2) {
+				const auto in_u{ *it };
+				const auto in_v{ *++it };
+				const auto out_u{ *++it };
+				std::cout << unit::Conversion(std::make_tuple(in_u, in_v, out_u)) << std::endl;
+			}
+		}
 	}
 
 	// MODE: Modulo Calculator

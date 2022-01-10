@@ -20,7 +20,7 @@ int main(const int argc, char** argv)
 		const auto [program_path, program_name] { path.resolve_split(args.arg0().value_or(argv[0])) };
 
 		std::vector<opt::ArgContainerType> operations;
-		const auto mode_tuple{ std::make_tuple(MODE_DATA.flag(), MODE_DATA.opt(), MODE_HEX.flag(), MODE_HEX.opt(), MODE_MOD.flag(), MODE_MOD.opt()) };
+		const auto mode_tuple{ std::make_tuple(MODE_DATA.flag(), MODE_DATA.opt(), MODE_HEX.flag(), MODE_HEX.opt(), MODE_MOD.flag(), MODE_MOD.opt(), MODE_UNIT.flag(), MODE_UNIT.opt()) };
 		for (auto pos{ args.find_any<opt::Flag, opt::Option>(mode_tuple, args.begin(), args.end()) }, last{ pos }; pos != args.end(); last = pos, pos = args.find_any<opt::Flag, opt::Option>(mode_tuple, pos + 1, args.end())) {
 			operations.emplace_back(args.get_range(last, pos));
 		}
@@ -31,8 +31,8 @@ int main(const int argc, char** argv)
 
 		// Check if args are empty / help arg included
 		if (do_help)
-			mode_help(program_name.generic_string() + " <MODE> [OPTIONS] [PARAMETERS]",
-					  { MODE_HELP, MODE_DATA, MODE_HEX, MODE_MOD },
+			mode::help(program_name.generic_string() + " <MODE> [OPTIONS] [PARAMETERS]",
+					  { MODE_HELP, MODE_DATA, MODE_HEX, MODE_MOD, MODE_UNIT },
 					  { NUMBER_GROUPING, PRECISION, OUTPUT_ONLY, HIDE_TYPES, NO_COLOR }
 		);
 		// Get all parameters
