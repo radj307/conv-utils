@@ -16,7 +16,21 @@ file(GLOB SRCS
 	"*.h*"
 )
 
-add_executable(conv "main.cpp")
+include(VersioninfoMaker)
+CREATE_VERSION_RESOURCE(
+	"${CMAKE_CURRENT_BINARY_DIR}" 
+	${CONV_VERSION_MAJOR} 
+	${CONV_VERSION_MINOR} 
+	${CONV_VERSION_PATCH}
+	"radj307"
+	"Conversion & calculator utility"
+	"conv.exe"
+	"GPLv3"
+	"conv.exe"
+	"Conv-Utils"
+)
+
+add_executable(conv "main.cpp" "${CMAKE_CURRENT_BINARY_DIR}/versioninfo.rc")
 
 include(PrependEach)
 PREPEND_EACH(SRCS_ABS ${SRCS} "${CMAKE_CURRENT_SOURCE_DIR}")
@@ -26,3 +40,6 @@ target_sources(conv PUBLIC
 )
 
 target_link_libraries(conv PUBLIC optlib TermAPI convlib)
+
+include(PackageInstaller)
+INSTALL_EXECUTABLE(conv "${CMAKE_INSTALL_PREFIX}/bin")
