@@ -10,6 +10,8 @@ using namespace conv;
 /// @brief Check for setting arguments and apply to settings
 inline void init_settings_from_args(opt::ParamsAPI2& args);
 
+#include <converter.hpp>
+
 // MAIN
 int main(const int argc, char** argv)
 {

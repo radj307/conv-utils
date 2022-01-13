@@ -223,13 +223,13 @@ namespace unit {
 					throw make_exception("Precision isn't set high enough for this operation!");
 				if (out_str.back() == '.')
 					out_str.pop_back();
-				os << conv.in_val << ' ' << conv.in_unit << "\t = " << out_str << ' ' << conv.out_unit;
+				os << (OutputSettings.number_grouping ? str::NumberGrouping : str::Placeholder) << Palette.set(UIElement::UNIT_VALUE) << conv.in_val << Palette.reset() << ' ' << Palette.set(UIElement::UNIT_INPUT) << conv.in_unit << Palette.reset() << " = " << Palette.set(UIElement::UNIT_VALUE) << out_str << Palette.reset() << ' ' << Palette.set(UIElement::UNIT_OUTPUT) << conv.out_unit << Palette.reset();
 
-			#ifdef _DEBUG
+				#ifdef _DEBUG
 				const auto p{ os.precision(32) };
 				os << '\n' << term::debug << "Out Val: (" << out_val << ")";
 				os.precision(p);
-			#endif
+				#endif
 			}
 			else throw make_exception("Invalid Number: \"", conv.in_val, "\"!");
 			return os;

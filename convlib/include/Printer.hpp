@@ -1,6 +1,10 @@
 #pragma once
+#include <str.hpp>
+
 #include <data.hpp>
-#include <ConverterColorPalette.hpp>
+#include <base.hpp>
+#include <modulo.hpp>
+#include <OutputHelper.hpp>
 
 namespace data { // DATA OUTPUT OPERATORS
 	// stream output operator for conversion

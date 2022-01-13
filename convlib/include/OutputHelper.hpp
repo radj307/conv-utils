@@ -22,6 +22,31 @@ enum class UIElement {
 	MOD_MODULO,
 	MOD_INPUT,
 	MOD_OUTPUT,
+	UNIT_VALUE,		// unit conversions -- input/output values
+	UNIT_INPUT,		// unit conversions -- input unit
+	UNIT_OUTPUT,	// unit conversions -- output unit
+};
+
+/**
+ * @brief Output Color Palette, controls the colors of various UI elements
+ */
+color::palette<UIElement> Palette{ {
+	{ UIElement::DATA_EQUALS, { color::intense_yellow, color::format::BOLD } },
+	{ UIElement::DATA_INPUT_VALUE, { color::white, color::format::BOLD } },
+	{ UIElement::DATA_INPUT_TYPE, color::orange },
+	{ UIElement::DATA_OUTPUT_VALUE, { color::white, color::format::BOLD } },
+	{ UIElement::DATA_OUTPUT_TYPE, color::orange },
+	{ UIElement::HEX_EQUALS, { color::intense_yellow, color::format::BOLD } },
+	{ UIElement::HEX_INPUT, { color::white, color::format::BOLD } },
+	{ UIElement::HEX_OUTPUT, { color::white, color::format::BOLD } },
+	{ UIElement::MOD_EQUALS, { color::intense_yellow, color::format::BOLD } },
+	{ UIElement::MOD_MODULO, { color::intense_yellow, color::format::BOLD } },
+	{ UIElement::MOD_INPUT, { color::white, color::format::BOLD } },
+	{ UIElement::MOD_OUTPUT, { color::white, color::format::BOLD } },
+	{ UIElement::UNIT_VALUE, { color::white, color::format::BOLD } },
+	{ UIElement::UNIT_INPUT, { color::orange } },
+	{ UIElement::UNIT_OUTPUT, { color::orange } },
+	}
 };
 
 static struct { // Program-wide output settings

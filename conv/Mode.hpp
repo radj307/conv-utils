@@ -37,15 +37,23 @@ namespace conv::mode {
 	// MODE: Length Measurement Unit Conversion
 	inline void unit_conv(const std::vector<std::string>& params)
 	{
-		(std::cout << std::fixed).precision(10);
-		for (auto it{ params.begin() }; it < params.end(); ++it) {
-			if (std::distance(it, params.end()) >= 2) {
-				const auto in_u{ *it };
-				const auto in_v{ *++it };
-				const auto out_u{ *++it };
-				std::cout << unit::Conversion(std::make_tuple(in_u, in_v, out_u)) << std::endl;
-			}
-		}
+		const auto& is_value_arg{ [](const std::string_view& str) -> bool {
+			return std::all_of(str.begin(), str.end(), [](auto&& ch) { return isdigit(ch) || ch == '.' || ch == '-'; });
+		} };
+		// lambda that retrieves 3 arguments and puts them into a tuple. DOES NOT CHECK BOUNDS!
+		const auto& get_conv_args{ [&is_value_arg](auto&& it) {
+			const auto first{ *it };
+			const auto second{ *++it };
+			const auto third{ *++it };
+			if (is_value_arg(second))
+				return std::make_tuple(first, second, third); // <in-unit> <val> <out-unit>
+			else return std::make_tuple(second, first, third);// <val> <in-unit> <out-unit>
+		} };
+
+		(std::cout << std::fixed).precision(OutputSettings.precision);
+		for (auto it{ params.begin() }; it < params.end(); ++it)
+			if (std::distance(it, params.end()) >= 2) ///< check bounds before calling get_conv_args
+				std::cout << unit::Conversion(get_conv_args(it)) << std::endl;
 	}
 
 	// MODE: Modulo Calculator
