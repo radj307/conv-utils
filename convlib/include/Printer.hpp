@@ -44,7 +44,7 @@ namespace base {
 	{
 		switch (detect_base(arg)) {
 		case ValueBase::DECIMAL:
-			return str::stringify(get_conversion_prefix(arg), str::stringify(std::hex, str::stoll(arg), std::uppercase, (OutputSettings.number_grouping ? str::NumberGrouping : str::Placeholder), (OutputSettings.hide_types ? "" : "0x")), Palette.reset());
+			return str::stringify(get_conversion_prefix(arg), str::stringify((OutputSettings.number_grouping ? str::NumberGrouping : str::Placeholder), (OutputSettings.hide_types ? "" : "0x")), std::hex, std::uppercase, str::stoll(arg), Palette.reset());
 		case ValueBase::HEXADECIMAL:
 			return str::stringify(get_conversion_prefix(arg), IntPrinter(to_decimal(arg)), Palette.reset());
 		case ValueBase::INVALID: [[fallthrough]];
