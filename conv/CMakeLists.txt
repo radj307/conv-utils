@@ -39,7 +39,7 @@ target_sources(conv PUBLIC
 	"$<INSTALL_INTERFACE:${SRCS}>"
 )
 
-target_link_libraries(conv PUBLIC optlib TermAPI convlib)
+target_link_libraries(conv PUBLIC optlib TermAPI filelib convlib)
 
 include(PackageInstaller)
 INSTALL_EXECUTABLE(conv "${CMAKE_INSTALL_PREFIX}/bin")
