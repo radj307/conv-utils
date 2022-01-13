@@ -17,7 +17,7 @@ namespace base {
 			return static_cast<int>(ch - '0');
 		else if (isalpha(ch))
 			return (static_cast<int>(str::toupper(ch) - 'A') + 10);
-		throw std::exception(str::stringify("getHexValue()\tFailed to convert \'", ch, "\' to hexadecimal!").c_str());
+		throw make_exception("getHexValue()\tFailed to convert \'", ch, "\' to hexadecimal!");
 	}
 
 	/**
@@ -39,7 +39,7 @@ namespace base {
 					break;
 				const auto val{ getHexValue(*ch) };
 				if (val >= from_base)
-					throw std::exception(std::string("to_decimal()\tFailed to convert \"" + hex + "\" Received invalid value \'" + std::to_string(val) + "\' from getHexValue()!").c_str());
+					throw make_exception("to_decimal()\tFailed to convert \"", hex, "\" Received invalid value \'", std::to_string(val), "\' from getHexValue()!");
 				result += val * power;
 				power = power * from_base;
 			}

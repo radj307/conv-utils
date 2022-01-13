@@ -1,9 +1,11 @@
 #pragma once
-#include <utility>
+#include <sysarch.h>
 #include <strmanip.hpp>
 #include <strconv.hpp>
 #include <OutputHelper.hpp>
 #include <ParamsAPI2.hpp>
+
+#include <utility>
 
 namespace data {
 	/**
@@ -14,11 +16,11 @@ namespace data {
 		const unsigned _index; ///< @brief Sequential index value assigned to this unit
 		const std::string _sym; ///< @brief The plaintext symbol used to represent this unit
 
-		constexpr Unit(unsigned index, std::string symbol) : _index{ std::move(index) }, _sym{ std::move(symbol) } {}
-		constexpr Unit(const Unit& o) : _index{ o._index }, _sym{ o._sym } {}
+		WINCONSTEXPR Unit(unsigned index, std::string symbol) : _index{ std::move(index) }, _sym{ std::move(symbol) } {}
+		WINCONSTEXPR Unit(const Unit& o) : _index{ o._index }, _sym{ o._sym } {}
 
-		constexpr operator unsigned() const { return _index; }
-		constexpr operator const std::string() const { return _sym; }
+		CONSTEXPR operator unsigned() const { return _index; }
+		WINCONSTEXPR operator const std::string() const { return _sym; }
 
 		bool operator==(const Unit& o) const { return _index == o._index; }
 		bool operator!=(const Unit& o) const { return !this->operator==(o); }
@@ -90,7 +92,7 @@ namespace data {
 		case 9u:
 			return Unit::YOTTABYTE;
 		default:
-			throw std::exception(std::string("data::get_unit_from_index()\tInvalid index: \'" + std::to_string(index) + "\'").c_str());
+			throw make_exception("data::get_unit_from_index()\tInvalid index : \'", index, "\'");
 		}
 	}
 
@@ -107,9 +109,9 @@ namespace data {
 		 * @param size	- The Unit type used to measure this data size's value.
 		 * @param value - The value of this data size.
 		 */
-		constexpr Size(Unit size, long double value) : _type{ std::move(size) }, _value{ std::move(value) } {}
+		WINCONSTEXPR Size(Unit size, long double value) : _type{ std::move(size) }, _value{ std::move(value) } {}
 		/// @brief Copy Constructor
-		constexpr Size(const Size& o) : _type{ o._type }, _value{ o._value } {}
+		WINCONSTEXPR Size(const Size& o) : _type{ o._type }, _value{ o._value } {}
 
 		bool operator==(const Size& o) const { return _type == o._type && _value == o._value; }
 		bool operator!=(const Size& o) const { return !operator==(o); }
@@ -127,7 +129,7 @@ namespace data {
 			const auto div{ pow(1024.0, diff_exp) };
 
 			if (div == 0.0)
-				throw std::exception("Size::convert_to()\tCan't divide by zero!");
+				throw make_exception("Size::convert_to()\tCan't divide by zero!");
 
 			// result = value / exponent
 			return{ size, _value / div };

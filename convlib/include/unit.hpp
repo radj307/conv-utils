@@ -165,44 +165,44 @@ namespace unit {
 
 		// check imperial
 		// negative
-		if (str == "in" || s == "i" || str::matches_any<false>(s, 4ull, "inch", "inches"))
+		if (str == "in" || s == "i" || str::matches_min_any<false>(s, 4, "inch", "inches"))
 			return Unit{ System::IMPERIAL, Imperial.INCH };
 		// positive
-		if (str == "yd" || s == "y" || str::matches_any<false>(s, 4ull, "yard", "yards"))
+		if (str == "yd" || s == "y" || str::matches_min_any<false>(s, 4, "yard", "yards"))
 			return Unit{ System::IMPERIAL, Imperial.YARD };
 		// base
-		if (str == "ft" || s == "f" || str::matches_any<false>(s, 4ull, "foot", "feet"))
+		if (str == "ft" || s == "f" || str::matches_min_any<false>(s, 4, "foot", "feet"))
 			return Unit{ System::IMPERIAL, Imperial.FOOT };
 
 		// check metric (str == (symbol) || str == (name))
 		// negative
-		if (str == "pm" || str::matches_any<false>(s, 7ull, "picometer"))
+		if (str == "pm" || str::matches_min_any<false>(s, 7, "picometer"))
 			return Unit{ System::METRIC, Metric.PICOMETER };
-		if (str == "nm" || str::matches_any<false>(s, 7ull, "nanometer"))
+		if (str == "nm" || str::matches_min_any<false>(s, 7, "nanometer"))
 			return Unit{ System::METRIC, Metric.NANOMETER };
-		if (str == "µm" || str == "um" || str::matches_any<false>(s, 8ull, "micrometer"))
+		if (str == "µm" || str == "um" || str::matches_min_any<false>(s, 8, "micrometer"))
 			return Unit{ System::METRIC, Metric.MICROMETER };
-		if (str == "mm" || str::matches_any<false>(s, 8ull, "millimeter"))
+		if (str == "mm" || str::matches_min_any<false>(s, 8, "millimeter"))
 			return Unit{ System::METRIC, Metric.MILLIMETER };
-		if (str == "cm" || str::matches_any<false>(s, 8ull, "centimeter"))
+		if (str == "cm" || str::matches_min_any<false>(s, 8, "centimeter"))
 			return Unit{ System::METRIC, Metric.CENTIMETER };
-		if (str == "dm" || str::matches_any<false>(s, 7ull, "decimeter"))
+		if (str == "dm" || str::matches_min_any<false>(s, 7, "decimeter"))
 			return Unit{ System::METRIC, Metric.DECIMETER };
 		// positive
-		if (str == "dam" || str::matches_any<false>(s, 7ull, "decameter"))
+		if (str == "dam" || str::matches_min_any<false>(s, 7, "decameter"))
 			return Unit{ System::METRIC, Metric.DECAMETER };
-		if (str == "hm" || str::matches_any<false>(s, 8ull, "hectometer"))
+		if (str == "hm" || str::matches_min_any<false>(s, 8, "hectometer"))
 			return Unit{ System::METRIC, Metric.HECTOMETER };
-		if (str == "km" || str::matches_any<false>(s, 7ull, "kilometer"))
+		if (str == "km" || str::matches_min_any<false>(s, 7, "kilometer"))
 			return Unit{ System::METRIC, Metric.KILOMETER };
-		if (str == "Mm" || str::matches_any<false>(s, 7ull, "megameter"))
+		if (str == "Mm" || str::matches_min_any<false>(s, 7, "megameter"))
 			return Unit{ System::METRIC, Metric.MEGAMETER };
-		if (str == "Gm" || str::matches_any<false>(s, 7ull, "gigameter"))
+		if (str == "Gm" || str::matches_min_any<false>(s, 7, "gigameter"))
 			return Unit{ System::METRIC, Metric.GIGAMETER };
-		if (str == "Tm" || str::matches_any<false>(s, 7ull, "terameter"))
+		if (str == "Tm" || str::matches_min_any<false>(s, 7, "terameter"))
 			return Unit{ System::METRIC, Metric.TERAMETER };
 		// base
-		if (str == "m" || str::matches_any<false>(s, 3ull, "meter"))
+		if (str == "m" || str::matches_min_any<false>(s, 3, "meter"))
 			return Unit{ System::METRIC, Metric.METER };
 
 		if (def.has_value())

@@ -53,7 +53,7 @@ namespace base {
 			return str::stringify(get_conversion_prefix(arg), IntPrinter(to_decimal(arg)), Palette.reset());
 		case ValueBase::INVALID: [[fallthrough]];
 		default:
-			throw std::exception(str::stringify("Invalid number: \"", arg, "\"!").c_str());
+			throw make_exception("Invalid number: \"", arg, "\"!");
 		}
 	}
 }
