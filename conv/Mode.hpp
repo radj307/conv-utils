@@ -65,13 +65,13 @@ namespace conv::mode {
 				if (const auto pos{ here.find('%') }; str::pos_valid(pos)) {
 					next = here.substr(pos + 1ull);
 					if (str::pos_valid(next.find('%')))
-						throw std::exception(std::string("Too many '%' characters in parameter \"" + *it + "\"").c_str());
+						throw make_exception("Too many '%' characters in parameter \"", *it, "\"");
 					here = here.substr(0ull, pos);
 				}
 				else if (it != params.end() - 1ull)
 					next = *++it;
 				else
-					throw std::exception(std::string("Unmatched value: \"" + here + "\"").c_str());
+					throw make_exception("Unmatched value: \"", here, "\"");
 				modulo::operation(here, next);
 			} catch (std::exception& ex) {
 				std::cerr << term::error << ex.what() << std::endl;

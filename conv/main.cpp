@@ -1,7 +1,7 @@
 #include <make_exception.hpp>
 #include <TermAPI.hpp>
 #include <ParamsAPI2.hpp>
-#include <env.hpp>
+#include <envpath.hpp>
 #include <str.hpp>
 
 #include "Mode.hpp"
@@ -9,8 +9,6 @@ using namespace conv;
 
 /// @brief Check for setting arguments and apply to settings
 inline void init_settings_from_args(opt::ParamsAPI2& args);
-
-#include <converter.hpp>
 
 // MAIN
 int main(const int argc, char** argv)
@@ -50,7 +48,7 @@ int main(const int argc, char** argv)
 		else if (check_args(args, MODE_MOD)) // calculate modulo operations
 			mode::modulo_calc(params);
 		else if (!do_help)
-			throw std::exception("No mode was specified!");
+			throw make_exception("No mode was specified!");
 
 		return 0;
 	} catch (const std::exception& ex) { // catch std::exception
