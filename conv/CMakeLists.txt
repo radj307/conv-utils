@@ -16,9 +16,9 @@ file(GLOB SRCS
 	"*.h*"
 )
 
-include(VersioninfoMaker)
+include(ResourceMaker)
 CREATE_VERSION_RESOURCE(
-	"${CMAKE_CURRENT_BINARY_DIR}" 
+	"${CMAKE_CURRENT_BINARY_DIR}/conv.rc" 
 	${CONV_VERSION_MAJOR} 
 	${CONV_VERSION_MINOR} 
 	${CONV_VERSION_PATCH}
@@ -30,7 +30,7 @@ CREATE_VERSION_RESOURCE(
 	"Conv-Utils"
 )
 
-add_executable(conv "main.cpp" "${CMAKE_CURRENT_BINARY_DIR}/versioninfo.rc")
+add_executable(conv "main.cpp" "${CMAKE_CURRENT_BINARY_DIR}/conv.rc")
 
 include(PrependEach)
 PREPEND_EACH(SRCS_ABS ${SRCS} "${CMAKE_CURRENT_SOURCE_DIR}")

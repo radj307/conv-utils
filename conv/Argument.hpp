@@ -14,12 +14,12 @@ public:
 	 * @param opt	- Name of the option (double-dash prefix, full word) used to specify this argument.
 	 * @param flag	- Name of the flag (single-dash prefix, single-character) used to specify this argument.
 	 */
-	constexpr Argument(std::string opt, char flag) : _opt{ std::move(opt) }, _flag{ std::move(flag) } {}
+	WINCONSTEXPR Argument(std::string opt, char flag) : _opt{ std::move(opt) }, _flag{ std::move(flag) } {}
 	/**
 	 * @brief Constructor that accepts an option name.
 	 * @param opt	- Name of the option (double-dash prefix, full word) used to specify this argument.
 	 */
-	constexpr Argument(std::string opt) : _opt{ std::move(opt) }, _flag{ std::nullopt } {}
+	WINCONSTEXPR Argument(std::string opt) : _opt{ std::move(opt) }, _flag{ std::nullopt } {}
 	/**
 	 * @brief Constructor that accepts a flag.
 	 * @param flag	- Name of the flag (single-dash prefix, single-character) used to specify this argument.
@@ -53,8 +53,8 @@ public:
 		return _flag.value_or(def);
 	}
 
-	constexpr explicit operator const std::string() const { return _opt.value(); }
-	constexpr explicit operator const char() const { return _flag.value(); }
+	WINCONSTEXPR explicit operator const std::string() const { return _opt.value(); }
+	CONSTEXPR explicit operator const char() const { return _flag.value(); }
 };
 /// @brief Represents an argument, paired with a short usage description for the help display.
 struct ArgumentPair : public Argument {
@@ -66,19 +66,19 @@ struct ArgumentPair : public Argument {
 	 * @param flag_name		- Name of the flag (single-dash prefix, single-character) used to specify this argument.
 	 * @param description	- Brief description of what this argument does & how to use it.
 	 */
-	constexpr ArgumentPair(std::string opt_name, char flag_name, std::string description) : Argument{ std::move(opt_name), std::move(flag_name) }, _desc{ std::move(description) } {}
+	WINCONSTEXPR ArgumentPair(std::string opt_name, char flag_name, std::string description) : Argument{ std::move(opt_name), std::move(flag_name) }, _desc{ std::move(description) } {}
 	/**
 	 * @brief Constructor that accepts an option name & a description for the help display.
 	 * @param opt_name		- Name of the option (double-dash prefix, full word) used to specify this argument.
 	 * @param description	- Brief description of what this argument does & how to use it.
 	 */
-	constexpr ArgumentPair(std::string opt_name, std::string description) : Argument{ std::move(opt_name) }, _desc{ std::move(description) } {}
+	WINCONSTEXPR ArgumentPair(std::string opt_name, std::string description) : Argument{ std::move(opt_name) }, _desc{ std::move(description) } {}
 	/**
 	 * @brief Constructor that accepts a flag & a description for the help display.
 	 * @param flag_name		- Name of the flag (single-dash prefix, single-character) used to specify this argument.
 	 * @param description	- Brief description of what this argument does & how to use it.
 	 */
-	constexpr ArgumentPair(char flag_name, std::string description) : Argument{ std::move(flag_name) }, _desc{ std::move(description) } {}
+	WINCONSTEXPR ArgumentPair(char flag_name, std::string description) : Argument{ std::move(flag_name) }, _desc{ std::move(description) } {}
 
 	friend std::ostream& operator<<(std::ostream& os, const ArgumentPair& argpr)
 	{
@@ -95,7 +95,8 @@ MODE_HELP{ "help", 'h', "Show this argument help display" },
 MODE_DATA{ "data", 'd', "Convert between digital data units. (B/kB/MB/GB/TB/PB/EB/ZB/YB)" },
 MODE_HEX{ "hex", 'x', "Convert between hexadecimal and decimal digits." },
 MODE_MOD{ "mod", '%', "Calculate the result of a modulo equation." },
-MODE_UNIT{ "unit", 'u', "Convert between Imperial & Metric length units."},
+MODE_UNIT{ "unit", 'u', "Convert between Imperial & Metric length units." },
+MODE_ASCII{ "ascii", 'a', "Convert between characters and their ASCII values." },
 NUMBER_GROUPING{ "number-grouping", 'g', "Insert commas when printing large numbers. (\"1000000\" => \"1,000,000\")" },
 PRECISION{ "precision", "Specify the number of digits to show after the decimal point." },
 OUTPUT_ONLY{ "output-only", 'o', "Show only the output values & types when printing results." },
