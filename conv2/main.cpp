@@ -84,10 +84,14 @@ int main(const int argc, char** argv)
 		bool quiet{ checkarg('q',"quiet") };
 		bool numGrouping{ getarg_any('g', "group") };
 
-		if (args.empty() || checkarg('h', "help"))
+		if (args.empty() || checkarg('h', "help")) {
 			std::cout << print_help;
-		else if (checkarg('v', "version"))
+			return 0;
+		}
+		else if (checkarg('v', "version")) {
 			std::cout << (quiet ? "" : "conv2  ") << CONV2_VERSION << std::endl;
+			return 0;
+		}
 
 		const auto& parameters{ args.typegetv_all<opt::Parameter>() };
 
