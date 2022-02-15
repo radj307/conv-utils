@@ -59,7 +59,7 @@ int main(const int argc, char** argv)
 	};
 
 	try {
-		opt::ParamsAPI2 args{ argc, argv, 'F', "FOV"};
+		opt::ParamsAPI2 args{ argc, argv, 'F', "FOV" };
 
 		const auto& getarg_any{ [&args](const std::optional<char>& flag, const std::optional<std::string>& opt) {
 			if (flag.has_value() && opt.has_value())
@@ -105,13 +105,13 @@ int main(const int argc, char** argv)
 						const auto in{ conv._in.value().get() };
 						buffer
 							<< color(OUTCOLOR::INPUT) << in->_value << color()
-							<< ' ' << color(OUTCOLOR::INPUT) << in->_type << color()
+							<< ' ' << in->_type
 							<< color(OUTCOLOR::OPERATOR) << " = " << color();
 					}
 					const auto out{ conv._out.value().get() };
 					buffer
 						<< color(OUTCOLOR::OUTPUT) << out->_value << color()
-						<< ' ' << color(OUTCOLOR::OUTPUT) << out->_type << color() << '\n';
+						<< ' ' << out->_type << '\n';
 				}
 			}
 		}
@@ -176,7 +176,11 @@ int main(const int argc, char** argv)
 			} };
 			for (auto it{ parameters.begin() }; it != parameters.end(); ++it) {
 				if (std::distance(it, parameters.end()) >= 2ll) {
-					buffer << unit::Convert(get_tuple(it)) << '\n';
+					const auto [in_unit, value, out_unit] { unit::Convert(get_tuple(it))._vars };
+					const auto result{ unit::Convert::getResult(in_unit, value, out_unit) };
+					if (!quiet)
+						buffer << color(OUTCOLOR::INPUT) << value << color() << ' ' << in_unit << ' ' << color(OUTCOLOR::OPERATOR) << '=' << color() << ' ';
+					buffer << color(OUTCOLOR::OUTPUT) << result << color() << '\n';
 				}
 			}
 		}
@@ -199,13 +203,15 @@ int main(const int argc, char** argv)
 				if (!quiet) {
 					buffer << color(OUTCOLOR::INPUT) << v << color() << ' ';
 					if (in_radians)
-						buffer << "rad" << ' ';
-					buffer << color(OUTCOLOR::OPERATOR) << '=' << color() << ' ';
+						buffer << "rad";
+					else 
+						buffer << "deg";
+					buffer << ' ' << color(OUTCOLOR::OPERATOR) << '=' << color() << ' ';
 				}
 				if (in_radians)
 					buffer << color(OUTCOLOR::OUTPUT) << toRadians(v) << color() << ' ' << "rad" << '\n';
 				else
-					buffer << color(OUTCOLOR::OUTPUT) << toDegrees(v) << color() << '\n';
+					buffer << color(OUTCOLOR::OUTPUT) << toDegrees(v) << color() << ' ' << "deg" << '\n';
 			}
 		}
 		else if (const auto& fov{ getarg_any('F', "FOV") }; fov.has_value()) {

@@ -319,7 +319,7 @@ namespace unit {
 		using Tuple = std::tuple<Unit, long double, Unit>;
 		using StrTuple = std::tuple<std::string, std::string, std::string>;
 		using NumberT = long double;
-	private:
+
 		Tuple _vars;
 		std::streamsize _min_indent{ 0ull };
 
@@ -349,7 +349,6 @@ namespace unit {
 			return convert(input_unit, input, output_unit);
 		}
 
-	public:
 		/// @brief	Default constructor
 		Convert(std::tuple<std::string, std::string, std::string>&& vars, const std::streamsize& min_indent = 0ull) : _vars{ std::move(convert_tuple(std::move(vars))) }, _min_indent{ min_indent } {}
 		/**
