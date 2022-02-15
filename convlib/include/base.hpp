@@ -3,7 +3,7 @@
 #include <sstream>
 #include <algorithm>
 #include <str.hpp>
-#include <OutputHelper.hpp>
+#include <indentor.hpp>
 
 namespace base {
 	/**
@@ -20,38 +20,63 @@ namespace base {
 		throw make_exception("getHexValue()\tFailed to convert \'", ch, "\' to hexadecimal!");
 	}
 
+	using decval = long long;
+	using hexval = std::string;
+
 	/**
-	 * @brief Convert a number in a base larger than 10 to decimal.
-	 * @param hex		- Input number as a string. This is currently only set up to allow hexadecimal input.
-	 * @param from_base - Number of distinct values per digit position.
-	 * @returns int
+	 * @brief			Convert from hexadecimal to decimal.
+	 * @param hex		Input hexadecimal value.
+	 * @returns			decval
 	 */
-	inline int to_decimal(std::string hex) noexcept(false)
+	inline decval to_decimal(hexval const& hex) noexcept(false)
 	{
 		const auto from_base{ 16 };
-		bool is_negative{ hex.front() == '-' };
-		if (is_negative)
-			hex = hex.substr(1ull);
 		if (!hex.empty()) {
 			int power{ 1 }, result{ 0 };
-			for (auto ch{ hex.rbegin() }; ch != hex.rend(); ++ch) {
-				if (*ch == 'x')
-					break;
-				const auto val{ getHexValue(*ch) };
-				if (val >= from_base)
-					throw make_exception("to_decimal()\tFailed to convert \"", hex, "\" Received invalid value \'", std::to_string(val), "\' from getHexValue()!");
-				result += val * power;
-				power = power * from_base;
+			for (auto c{ hex.rbegin() }; c != hex.rend(); ++c) {
+				if (*c == 'x')
+					break; // avoid checking "0x" prefix
+				const auto v{ getHexValue(*c) };
+				if (v >= from_base)
+					throw make_exception("Hexadecimal value \'", *c, "\' converted to invalid hex number \"", v, "\"!\n", indent(10), "Please report this error to the developer!");
+				result += v * power;
+				power *= from_base;
 			}
-			return is_negative ? -result : result;
+			return result;
 		}
-		return -1;
+		else throw make_exception("Received an empty hexadecimal number, conversion failed!");
 	}
 
-	inline std::string to_hex(auto value) noexcept(false)
+	/**
+	 * @brief			Convert from decimal to hexadecimal.
+	 * @param dec		Input decimal value.
+	 * @param ...fmt	Additional stream formatting objects to include before printing the value.
+	 * @returns			hexval
+	 */
+	template<var::Streamable<std::stringstream>... Ts>
+	inline hexval to_hex(decval const& dec, Ts&&... fmt) noexcept
 	{
-		const bool is_negative{ value < 0 };
-		return str::stringify(std::hex, std::uppercase, (OutputSettings.number_grouping ? str::NumberGrouping : str::Placeholder), (is_negative ? "-0x" : (OutputSettings.hide_types ? "" : "0x")));
+		return str::stringify(
+			std::hex,
+			std::forward<Ts>(fmt)...,
+			dec
+		);
+	}
+
+	/**
+	 * @brief			Convert from decimal to hexadecimal.
+	 * @param dec		Input decimal value as a string.
+	 * @param ...fmt	Additional stream formatting objects to include before printing the value.
+	 * @returns			hexval
+	 */
+	template<var::Streamable<std::stringstream>... Ts>
+	inline hexval to_hex(std::string const& dec, Ts&&... fmt) noexcept
+	{
+		return str::stringify(
+			std::hex,
+			std::forward<Ts>(fmt)...,
+			str::stoll(dec)
+		);
 	}
 
 	/**

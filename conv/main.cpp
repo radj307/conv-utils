@@ -1,5 +1,6 @@
 #include <make_exception.hpp>
 #include <TermAPI.hpp>
+#include <INIRedux.hpp>
 #include <ParamsAPI2.hpp>
 #include <envpath.hpp>
 #include <str.hpp>
@@ -9,6 +10,8 @@ using namespace conv;
 
 /// @brief Check for setting arguments and apply to settings
 inline void init_settings_from_args(opt::ParamsAPI2& args);
+
+#include "PrintableEquation.hpp"
 
 // MAIN
 int main(const int argc, char** argv)

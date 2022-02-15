@@ -44,5 +44,5 @@ target_include_directories(convlib PUBLIC
 )
 
 # Link library dependencies
-target_link_libraries(convlib PUBLIC shared TermAPI strlib optlib)
+target_link_libraries(convlib PUBLIC shared TermAPI strlib filelib optlib)
 

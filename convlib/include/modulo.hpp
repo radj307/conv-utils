@@ -1,6 +1,6 @@
 #pragma once
-#include <OutputHelper.hpp>
-#include <cmath>
+#include <math.hpp>
+
 namespace modulo {
 	using FloatT = long double;
 	using IntT = long long;
@@ -37,8 +37,12 @@ namespace modulo {
 		{
 			if constexpr (std::same_as<T, FloatT>)
 				return fmodl(in, mod);
-			else if constexpr (std::same_as<T, IntT>)
-				return (in % mod);
+			else if constexpr (std::same_as<T, IntT>) {
+				if (mod != 0)
+					return (in % mod);
+				else
+					throw make_exception("Cannot divide by zero!");
+			}
 			return static_cast<T>(0);
 		}
 

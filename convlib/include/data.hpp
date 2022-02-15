@@ -2,7 +2,6 @@
 #include <sysarch.h>
 #include <strmanip.hpp>
 #include <strconv.hpp>
-#include <OutputHelper.hpp>
 #include <ParamsAPI2.hpp>
 
 #include <utility>
@@ -134,18 +133,6 @@ namespace data {
 			// result = value / exponent
 			return{ size, _value / div };
 		}
-
-		/**
-		 * @brief Output Stream Insertion Operator. Does not use colors or apply special formatting. Output is in the format: "(_value) (_type)"
-		 * @param os	- (implicit) Target Output Stream.
-		 * @param obj	- (implicit) Size instance.
-		 * @returns std::ostream&
-		 */
-		friend std::ostream& operator<<(std::ostream& os, const Size& obj)
-		{
-			os << FloatPrinter(obj._value) << ' ' << obj._type;
-			return os;
-		}
 	};
 
 	/**
@@ -238,11 +225,14 @@ namespace data {
 		{
 			const auto origin{ it };
 			if (it != end - 1u) {
+				if (const Unit here{ determine_unit(*it) }; here != Unit::UNKNOWN)
+					_in = std::make_unique<Size>(Size{ here, str::stold(*++it)});
 				// check if the input value & type are merged (ex: "512GB")
-				if (const auto fst_merged{ str_to_size(*origin) }; fst_merged._type != Unit::UNKNOWN)
+				else if (const auto fst_merged{ str_to_size(*origin) }; fst_merged._type != Unit::UNKNOWN)
 					_in = std::make_unique<Size>(Size{ fst_merged._type, fst_merged._value });
 				else // use the next argument as the input type (ex: "512 GB")
 					_in = std::make_unique<Size>(Size{ determine_unit(*++it), str::stold(*origin) });
+
 				if (it != end - 1u) { // if there is another argument in the list, use it as the output type
 					if (const auto out_t{ determine_unit(*++it, true) }; out_t != Unit::UNKNOWN)
 						_out = std::make_unique<Size>(_in.value().get()->convert_to(out_t));

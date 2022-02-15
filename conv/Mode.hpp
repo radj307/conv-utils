@@ -53,7 +53,7 @@ namespace conv::mode {
 		(std::cout << std::fixed).precision(OutputSettings.precision);
 		for (auto it{ params.begin() }; it < params.end(); ++it)
 			if (std::distance(it, params.end()) >= 2) ///< check bounds before calling get_conv_args
-				std::cout << unit::Conversion(get_conv_args(it)) << std::endl;
+				std::cout << unit::Convert(get_conv_args(it)) << std::endl;
 	}
 
 	// MODE: Modulo Calculator
