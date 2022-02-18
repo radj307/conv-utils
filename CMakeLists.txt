@@ -13,9 +13,4 @@ add_subdirectory("307lib")
 
 add_subdirectory("convlib")
 
-option(USE_CONV2 "Use the conv2 executable frontend instead of the original conv version." ON)
-if (USE_CONV2)
-	add_subdirectory("conv2")
-else()
-	add_subdirectory("conv")
-endif()
+add_subdirectory("conv2")
