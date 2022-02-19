@@ -5,6 +5,7 @@
 #include <palette.hpp>
 
 #include <iostream>
+#include <iomanip>
 
 inline std::ostream& print_help(std::ostream& os)
 {
@@ -21,16 +22,21 @@ inline std::ostream& print_help(std::ostream& os)
 		<< "  -q  --quiet           Only show minimal output." << '\n'
 		<< "  -g  --group           Use number grouping for large numbers. (Ex. 1,000,000)" << '\n'
 		<< "  -n  --no-color        Disable the usage of colorized output." << '\n'
+		<< "      --showbase        Force " << '\n'
+		<< "      --precision <#>   Specify the number of digits after the decimal point to show." << '\n'
+		<< "      --fixed           Force standard notation." << '\n'
+		<< "      --scientific      Force scientific notation." << '\n'
+		<< "      --hexfloat        Force floating-point numbers to use hexadecimal." << '\n'
 		<< '\n'
 		<< "MODES:\n"
 		<< "  -d  --data            Data Size Conversions. (B, kB, MB, GB, etc.)" << '\n'
 		<< "  -x  --hex             Hexadecimal <=> Decimal Conversions." << '\n'
 		<< "  -m  --mod             Modulo Calculator." << '\n'
 		<< "  -l  --len             Length Unit Conversions. (meters, feet, etc.)" << '\n'
-		<< "  -a  --ascii           ASCII Table Lookup." << '\n'
+		<< "  -a  --ascii           ASCII Table Lookup Tool. Converts all characters to their ASCII values." << '\n'
 		<< "  -R  --rad             Degrees <=> Radians Converter." << '\n'
 		<< "  -F  --FOV <H:V>       Horizontal <=> Vertical Field of View Converter." << '\n'
-		<< "                        You must specify an aspect ratio with \"Horizontal:Vertical\"." << '\n'
+		<< "                        Requires an aspect ratio, specify one with \"H:V\". (Ex: \"-F 16:9\")" << '\n'
 		;
 }
 
@@ -42,6 +48,62 @@ inline std::ostream& print_help(std::ostream& os)
 #include <radians.hpp>	// RADIANS
 #include <FOV.hpp>		// FOV
 
+/**
+ * @struct	StreamFormatter
+ * @brief	Handles output stream formatting arguments.
+ */
+struct StreamFormatter {
+	const opt::ParamsAPI2* args;
+	bool
+		showbase,
+		precision,
+		fixed,
+		scientific,
+		hexfloat;
+	StreamFormatter(const opt::ParamsAPI2* args) : args{ args },
+		showbase{ args->check<opt::Option>("showbase") },
+		precision{ args->check<opt::Option>("precision") },
+		fixed{ args->check<opt::Option>("fixed") },
+		scientific{ args->check<opt::Option>("scientific") },
+		hexfloat{ args->check<opt::Option>("hexfloat") }
+	{}
+
+	/**
+	 * @brief		Apply stream formatting flags to the given output stream.
+	 * @param os	(implicit) Output Stream Reference.
+	 * @param fmt	(implicit) StreamFormatter Instance.
+	 * @returns		std::ostream&
+	 */
+	friend std::ostream& operator<<(std::ostream& os, const StreamFormatter& fmt)
+	{
+		// SHOWBASE
+		if (fmt.showbase)
+			os << std::showbase;
+
+		// PRECISION
+		if (fmt.precision) {
+			if (const auto& precision{ fmt.args->typegetv<opt::Option>("precision") }; precision.has_value()) {
+				if (const auto& value{ precision.value() }; std::all_of(value.begin(), value.end(), isdigit))
+					os << std::setprecision(str::stoll(value));
+				else throw make_exception("\"", value, "\" isn't a valid integer!");
+			}
+			else throw make_exception("\"--precision\" requires an integer to specify the decimal precision!");
+		}
+
+		// NOTATIONS
+		if ((fmt.fixed & fmt.scientific & fmt.hexfloat) != 0) // make sure only one notation arg was set
+			throw make_exception("Cannot specify multiple notation arguments! (--fixed, --scientific, --hexfloat)");
+
+		if (fmt.fixed)
+			os << std::fixed;
+		else if (fmt.scientific)
+			os << std::scientific;
+		else if (fmt.hexfloat)
+			os << std::hexfloat;
+
+		return os;
+	}
+};
 
 int main(const int argc, char** argv)
 {
@@ -51,7 +113,7 @@ int main(const int argc, char** argv)
 		OUTPUT,
 		OPERATOR,
 	};
-	term::palette<OUTCOLOR> color {
+	term::palette<OUTCOLOR> color{
 		std::make_pair(OUTCOLOR::NONE, color::white),
 		std::make_pair(OUTCOLOR::INPUT, color::yellow),
 		std::make_pair(OUTCOLOR::OUTPUT, color::yellow),
@@ -63,17 +125,10 @@ int main(const int argc, char** argv)
 	int returnCode = 1;
 
 	try {
-		opt::Args args{ argc, argv, 'F', "FOV", 'V'};
+		// parse arguments
+		opt::Args args{ argc, argv, 'F', "FOV", 'V' };
 
-		const auto& getarg_any{ [&args](const std::optional<char>& flag, const std::optional<std::string>& opt) {
-			if (flag.has_value() && opt.has_value())
-				return args.typegetv_any<opt::Flag, opt::Option>(flag.value(), opt.value());
-			else if (flag.has_value())
-				return args.typegetv_any<opt::Flag>(flag.value());
-			else if (opt.has_value())
-				return args.typegetv_any<opt::Option>(opt.value());
-			return static_cast<std::optional<std::string>>(std::nullopt);
-		} };
+		// @brief	Lambda that checks if either the given flag or option were included on the commandline.
 		const auto& checkarg{ [&args](const std::optional<char>& flag, const std::optional<std::string>& opt) {
 			if (flag.has_value() && opt.has_value())
 				return args.check_any<opt::Flag, opt::Option>(flag.value(), opt.value());
@@ -84,14 +139,17 @@ int main(const int argc, char** argv)
 			return false;
 		} };
 
+		// handle blocking arguments
 		color.setActive(!checkarg('n', "no-color"));
-		bool quiet{ checkarg('q',"quiet") };
-		bool numGrouping{ getarg_any('g', "group") };
+		bool quiet{ checkarg('q', "quiet") };
+		bool numGrouping{ checkarg('g', "group") };
 
+		// [-h|--help]
 		if (args.empty() || checkarg('h', "help")) {
 			std::cout << print_help;
 			return 0;
 		}
+		// [-v|--version]
 		else if (checkarg('v', "version")) {
 			std::cout << (quiet ? "" : "conv2  ") << CONV2_VERSION << std::endl;
 			return 0;
@@ -99,6 +157,8 @@ int main(const int argc, char** argv)
 
 		const auto& parameters{ args.typegetv_all<opt::Parameter>() };
 
+		StreamFormatter streamfmt{ &args };
+		buffer << streamfmt;
 
 		// DATA
 		if (checkarg('d', "data")) {
@@ -220,9 +280,13 @@ int main(const int argc, char** argv)
 			}
 		}
 		// FOV
-		else if (const auto& fov{ getarg_any('F', "FOV") }; fov.has_value()) {
+		else if (checkarg('F', "FOV")) {
+			const auto& fov{ args.typegetv_any<opt::Flag, opt::Option>('F', "FOV") };
+			if (!fov.has_value())
+				throw make_exception("Detected mode: FOV\n", indent(10), "No aspect ratio was specified!");
+
 			const auto& isVertical{ [](auto&& str) {
-				const auto lower{str::tolower(str)};
+				const auto lower{ str::tolower(str) };
 				if (const auto& pos{ lower.find('v') }; pos != std::string::npos)
 					return true;
 				if (const auto& pos{ lower.find('h') }; pos != std::string::npos)
@@ -233,7 +297,7 @@ int main(const int argc, char** argv)
 				);
 			} };
 
-			FOV::AspectRatio aspect{ 0,0 };
+			FOV::AspectRatio aspect{ 0, 0 };
 
 			std::string captured{ fov.value() };
 			if (const auto& pos{ captured.find(':') }; pos != std::string::npos) {
