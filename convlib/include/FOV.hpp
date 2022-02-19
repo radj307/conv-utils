@@ -35,13 +35,25 @@ namespace FOV {
 	constexpr const AspectRatio AspectRatio::AR16x9{ 16u, 9u };
 	constexpr const AspectRatio AspectRatio::AR16x10{ 16u, 10u };
 
-	inline value toVertical(value const& horizontal, AspectRatio const& aspect)
+	/**
+	 * @brief				Convert a horizontal FOV value in degrees to a vertical FOV value in degrees, given an aspect ratio.
+	 * @param horizontal	Input Horizontal FOV value in degrees.
+	 * @param aspect		Aspect Ratio.
+	 * @returns				value
+	 */
+	[[nodiscard]] inline value toVertical(value const& horizontal, AspectRatio const& aspect)
 	{
-		return std::ceil(toDegrees( 2 * std::atan(std::tan(toRadians(horizontal) / 2) * aspect.verticalOverHorizontal()) ));
+		return toDegrees( 2 * std::atan(std::tan(toRadians(horizontal) / 2) * aspect.verticalOverHorizontal()) );
 	}
 
-	inline value toHorizontal(value const& vertical, AspectRatio const& aspect)
+	/**
+	 * @brief				Convert a vertical FOV value in degrees to a horizontal FOV value in degrees, given an aspect ratio.
+	 * @param vertical		Input Vertical FOV value in degrees.
+	 * @param aspect		Aspect Ratio.
+	 * @returns				value
+	 */
+	[[nodiscard]] inline value toHorizontal(value const& vertical, AspectRatio const& aspect)
 	{
-		return std::floor(toDegrees( 2 * std::atan(std::tan(toRadians(vertical) / 2) * aspect.horizontalOverVertical()) ));
+		return toDegrees( 2 * std::atan(std::tan(toRadians(vertical) / 2) * aspect.horizontalOverVertical()) );
 	}
 }

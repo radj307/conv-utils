@@ -51,15 +51,19 @@ int main(const int argc, char** argv)
 		OUTPUT,
 		OPERATOR,
 	};
-	term::palette<OUTCOLOR> color{
+	term::palette<OUTCOLOR> color {
 		std::make_pair(OUTCOLOR::NONE, color::white),
 		std::make_pair(OUTCOLOR::INPUT, color::yellow),
 		std::make_pair(OUTCOLOR::OUTPUT, color::yellow),
 		std::make_pair(OUTCOLOR::OPERATOR, color::white),
 	};
 
+	// use a buffer to prevent changes to standard output
+	std::stringstream buffer;
+	int returnCode = 1;
+
 	try {
-		opt::ParamsAPI2 args{ argc, argv, 'F', "FOV" };
+		opt::Args args{ argc, argv, 'F', "FOV", 'V'};
 
 		const auto& getarg_any{ [&args](const std::optional<char>& flag, const std::optional<std::string>& opt) {
 			if (flag.has_value() && opt.has_value())
@@ -95,10 +99,9 @@ int main(const int argc, char** argv)
 
 		const auto& parameters{ args.typegetv_all<opt::Parameter>() };
 
-		std::stringstream buffer;
 
+		// DATA
 		if (checkarg('d', "data")) {
-			// DATA
 			for (auto arg{ parameters.begin() }; arg != parameters.end(); ++arg) {
 				if (const auto conv{ data::Conversion(arg, parameters.end()) }; conv._in.has_value() && conv._out.has_value()) {
 					if (!quiet) { // print input values
@@ -115,8 +118,8 @@ int main(const int argc, char** argv)
 				}
 			}
 		}
+		// HEX
 		else if (checkarg('x', "hex")) {
-			// HEX
 			for (const auto& it : parameters) {
 				if (!quiet)
 					buffer << color(OUTCOLOR::INPUT) << it << color() << ' ' << color(OUTCOLOR::OPERATOR) << '=' << color() << ' ';
@@ -133,8 +136,8 @@ int main(const int argc, char** argv)
 				}
 			}
 		}
+		// MODULO
 		else if (checkarg('m', "mod")) {
-			// MODULO
 			for (auto it{ parameters.begin() }; it != parameters.end(); ++it) {
 				std::string here{ *it }, next{ "" };
 				if (const auto& pos{ here.find('%') }; pos != std::string::npos) {
@@ -161,8 +164,8 @@ int main(const int argc, char** argv)
 				buffer << color() << '\n';
 			}
 		}
+		// LENGTH
 		else if (checkarg('l', "len")) {
-			// LENGTH
 			const auto& is_value{ [](const std::string_view& str) -> bool {
 				return std::all_of(str.begin(), str.end(), [](auto&& c) {return isdigit(c) || c == '.' || c == '-'; });
 			} };
@@ -176,7 +179,7 @@ int main(const int argc, char** argv)
 			} };
 			for (auto it{ parameters.begin() }; it != parameters.end(); ++it) {
 				if (std::distance(it, parameters.end()) >= 2ll) {
-					const auto [in_unit, value, out_unit] { unit::Convert(get_tuple(it))._vars };
+					const auto& [in_unit, value, out_unit] { unit::Convert(get_tuple(it))._vars };
 					const auto result{ unit::Convert::getResult(in_unit, value, out_unit) };
 					if (!quiet)
 						buffer << color(OUTCOLOR::INPUT) << value << color() << ' ' << in_unit << ' ' << color(OUTCOLOR::OPERATOR) << '=' << color() << ' ';
@@ -184,18 +187,20 @@ int main(const int argc, char** argv)
 				}
 			}
 		}
+		// ASCII
 		else if (checkarg('a', "ascii")) {
-			// ASCII
 			for (auto it{ parameters.begin() }; it != parameters.end(); ++it) {
 				if (!quiet)
 					buffer << color(OUTCOLOR::INPUT) << *it << color() << ' ' << color(OUTCOLOR::OPERATOR) << '=' << color() << ' ';
-				for (const auto& c : *it)
+				if (std::all_of(it->begin(), it->end(), isdigit))
+					buffer << color(OUTCOLOR::OUTPUT) << static_cast<char>(str::stoll(*it)) << color() << ' ';
+				else for (const auto& c : *it)
 					buffer << color(OUTCOLOR::OUTPUT) << static_cast<short>(c) << color() << ' ';
 				buffer << '\n';
 			}
 		}
+		// RADIANS
 		else if (checkarg('R', "rad")) {
-			// RADIAN
 			for (std::string it : parameters) {
 				const bool in_radians{ str::tolower(it).find('c') != std::string::npos };
 				it.erase(std::remove_if(it.begin(), it.end(), isalpha), it.end());
@@ -204,7 +209,7 @@ int main(const int argc, char** argv)
 					buffer << color(OUTCOLOR::INPUT) << v << color() << ' ';
 					if (in_radians)
 						buffer << "rad";
-					else 
+					else
 						buffer << "deg";
 					buffer << ' ' << color(OUTCOLOR::OPERATOR) << '=' << color() << ' ';
 				}
@@ -214,15 +219,18 @@ int main(const int argc, char** argv)
 					buffer << color(OUTCOLOR::OUTPUT) << toDegrees(v) << color() << ' ' << "deg" << '\n';
 			}
 		}
+		// FOV
 		else if (const auto& fov{ getarg_any('F', "FOV") }; fov.has_value()) {
-			// FOV
 			const auto& isVertical{ [](auto&& str) {
 				const auto lower{str::tolower(str)};
 				if (const auto& pos{ lower.find('v') }; pos != std::string::npos)
 					return true;
 				if (const auto& pos{ lower.find('h') }; pos != std::string::npos)
 					return false;
-				throw make_exception("Cannot determine whether \"", str, "\" is a vertical or horizontal FOV; Append 'V' or 'H' to the value!");
+				throw make_exception("Cannot determine FOV orientation of \"", str, "\"!\n",
+					indent(10), "Append 'H' to specify a Horizontal FOV.\n",
+					indent(10), "Append 'V' to specify a Vertical FOV."
+				);
 			} };
 
 			FOV::AspectRatio aspect{ 0,0 };
@@ -245,16 +253,17 @@ int main(const int argc, char** argv)
 					buffer << color(OUTCOLOR::OUTPUT) << FOV::toVertical(str::stold(it), aspect) << color() << " V\n";
 			}
 		}
-		else throw make_exception("No mode argument specified! Nothing to do.");
+		else throw make_exception("Nothing to do; no mode was specified!");
 
-		std::cout << buffer.rdbuf() << std::endl;
-
-		return 0;
+		returnCode = 0;
 	} catch (const std::exception& ex) {
 		std::cerr << color.get_error() << ex.what() << std::endl;
-		return 1;
 	} catch (...) {
 		std::cerr << color.get_error() << "An undefined exception occurred!" << std::endl;
-		return 1;
 	}
+
+	// print buffer before exit
+	std::cout << buffer.rdbuf() << std::endl;
+
+	return returnCode;
 }
