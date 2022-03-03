@@ -9,7 +9,7 @@
 
 /**
  * @brief			Convert from degrees to radians.
- * @tparam T		Numeric Value Type
+ * @tparam T		Numeric Value Type.
  * @param degrees	Input value in degrees.
  * @returns			T
  */
@@ -21,7 +21,7 @@ static T toRadians(T const& degrees)
 
 /**
  * @brief			Convert from radians to degrees.
- * @tparam T		Numeric Value Type
+ * @tparam T		Numeric Value Type. 
  * @param radians	Input value in radians.
  * @returns			T
  */

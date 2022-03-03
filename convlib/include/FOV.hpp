@@ -56,4 +56,25 @@ namespace FOV {
 	{
 		return toDegrees( 2 * std::atan(std::tan(toRadians(vertical) / 2) * aspect.horizontalOverVertical()) );
 	}
+	/**
+	 * @brief				Convert a horizontal FOV value in degrees to a vertical FOV value in radians, given an aspect ratio.
+	 * @param horizontal	Input Horizontal FOV value in radians.
+	 * @param aspect		Aspect Ratio.
+	 * @returns				value
+	 */
+	[[nodiscard]] inline value toVerticalR(value const& horizontal, AspectRatio const& aspect)
+	{
+		return 2 * std::atan(std::tan(horizontal / 2) * aspect.verticalOverHorizontal());
+	}
+
+	/**
+	 * @brief				Convert a vertical FOV value in degrees to a horizontal FOV value in radians, given an aspect ratio.
+	 * @param vertical		Input Vertical FOV value in radians.
+	 * @param aspect		Aspect Ratio.
+	 * @returns				value
+	 */
+	[[nodiscard]] inline value toHorizontalR(value const& vertical, AspectRatio const& aspect)
+	{
+		return 2 * std::atan(std::tan(vertical / 2) * aspect.horizontalOverVertical());
+	}
 }
