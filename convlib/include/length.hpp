@@ -1,9 +1,11 @@
 /**
- * @file	unit.hpp
+ * @file	length.hpp
  * @author	radj307
  * @brief	Contains real-world measurement unit converters, currently supporting metric & imperial.
  */
 #pragma once
+#include "metric.hpp"
+
 #include <sysarch.h>
 #include <make_exception.hpp>
 #include <str.hpp>
@@ -15,7 +17,9 @@
 #include <iterator>
 #include <algorithm>
 
-namespace unit {
+namespace length {
+	using namespace metric;
+
 	/**
 	 * @enum	SystemID
 	 * @brief	Accepted Measurement Systems
@@ -51,22 +55,6 @@ namespace unit {
 		}
 	};
 
-	enum class Powers : char {
-		PICO = -12,
-		NANO = -9,
-		MICRO = -6,
-		MILLI = -3,
-		CENTI = -2,
-		DECI = -1,
-		BASE = 0,
-		DECA = 1,
-		HECTO = 2,
-		KILO = 3,
-		MEGA = 6,
-		GIGA = 9,
-		TERA = 12,
-	};
-
 	struct System {
 		using T = long double;
 		using U = Unit;
@@ -78,19 +66,19 @@ namespace unit {
 	 */
 	static struct : public System { // SystemID::METRIC
 		const std::vector<U> units{
-			{ SystemID::METRIC, std::pow(10.0L, static_cast<T>(Powers::PICO)), "pm", "Picometer" },
-			{ SystemID::METRIC, std::pow(10.0L, static_cast<T>(Powers::NANO)), "nm", "Nanometer" },
-			{ SystemID::METRIC, std::pow(10.0L, static_cast<T>(Powers::MICRO)), "um", "Micrometer" },
-			{ SystemID::METRIC, std::pow(10.0L, static_cast<T>(Powers::MILLI)), "mm", "Millimeter" },
-			{ SystemID::METRIC, std::pow(10.0L, static_cast<T>(Powers::CENTI)), "cm", "Centimeter" },
-			{ SystemID::METRIC, std::pow(10.0L, static_cast<T>(Powers::DECI)), "dm", "Decimeter" },
-			{ SystemID::METRIC, std::pow(10.0L, static_cast<T>(Powers::BASE)), "m", "Meter" },
-			{ SystemID::METRIC, std::pow(10.0L, static_cast<T>(Powers::DECA)), "dam", "Decameter" },
-			{ SystemID::METRIC, std::pow(10.0L, static_cast<T>(Powers::HECTO)), "hm", "Hectometer" },
-			{ SystemID::METRIC, std::pow(10.0L, static_cast<T>(Powers::KILO)), "km", "Kilometer" },
-			{ SystemID::METRIC, std::pow(10.0L, static_cast<T>(Powers::MEGA)), "Mm", "Megameter" },
-			{ SystemID::METRIC, std::pow(10.0L, static_cast<T>(Powers::GIGA)), "Gm", "Gigameter" },
-			{ SystemID::METRIC, std::pow(10.0L, static_cast<T>(Powers::TERA)), "Tm", "Terameter" }
+			{ SystemID::METRIC, std::pow(10.0L, static_cast<T>(Prefix::PICO)), "pm", "Picometer" },
+			{ SystemID::METRIC, std::pow(10.0L, static_cast<T>(Prefix::NANO)), "nm", "Nanometer" },
+			{ SystemID::METRIC, std::pow(10.0L, static_cast<T>(Prefix::MICRO)), "um", "Micrometer" },
+			{ SystemID::METRIC, std::pow(10.0L, static_cast<T>(Prefix::MILLI)), "mm", "Millimeter" },
+			{ SystemID::METRIC, std::pow(10.0L, static_cast<T>(Prefix::CENTI)), "cm", "Centimeter" },
+			{ SystemID::METRIC, std::pow(10.0L, static_cast<T>(Prefix::DECI)), "dm", "Decimeter" },
+			{ SystemID::METRIC, std::pow(10.0L, static_cast<T>(Prefix::BASE)), "m", "Meter" },
+			{ SystemID::METRIC, std::pow(10.0L, static_cast<T>(Prefix::DECA)), "dam", "Decameter" },
+			{ SystemID::METRIC, std::pow(10.0L, static_cast<T>(Prefix::HECTO)), "hm", "Hectometer" },
+			{ SystemID::METRIC, std::pow(10.0L, static_cast<T>(Prefix::KILO)), "km", "Kilometer" },
+			{ SystemID::METRIC, std::pow(10.0L, static_cast<T>(Prefix::MEGA)), "Mm", "Megameter" },
+			{ SystemID::METRIC, std::pow(10.0L, static_cast<T>(Prefix::GIGA)), "Gm", "Gigameter" },
+			{ SystemID::METRIC, std::pow(10.0L, static_cast<T>(Prefix::TERA)), "Tm", "Terameter" }
 		};
 
 		const U* PICOMETER{ &units[0] };
@@ -117,22 +105,22 @@ namespace unit {
 	 */
 	static struct : public System { // SystemID::IMPERIAL
 		const std::vector<U> units{
-			{ SystemID::IMPERIAL, (1.0L / 17280.0L), "Twip" },
-			{ SystemID::IMPERIAL, (1.0L / 12000.0L), "th", "Thou" },
-			{ SystemID::IMPERIAL, (1.0L / 36.0L), "Bc", "Barleycorn" },
-			{ SystemID::IMPERIAL, (1.0L / 12.0L), "\"", "Inch" },
-			{ SystemID::IMPERIAL, (1.0L / 3.0L), "h", "Hand" },
-			{ SystemID::IMPERIAL, (1.0L), "\'", "Feet" },
-			{ SystemID::IMPERIAL, (3.0L), "yd", "Yard" },
-			{ SystemID::IMPERIAL, (66.0L), "ch", "Chain" },
-			{ SystemID::IMPERIAL, (660.0L), "fur", "Furlong" },
-			{ SystemID::IMPERIAL, (5280.0L), "mi", "Mile" },
-			{ SystemID::IMPERIAL, (15840.0L), "lea", "League" },
-			{ SystemID::IMPERIAL, (6.0761L), "ftm", "Fathom" },
-			{ SystemID::IMPERIAL, (607.61L), "Cable" },
-			{ SystemID::IMPERIAL, (6076.1L), "nmi", "Nautical Mile" },
-			{ SystemID::IMPERIAL, (66.0L / 100.0L), "Link" },
-			{ SystemID::IMPERIAL, (66.0L / 4.0L), "rd", "Rod" }
+			{ SystemID::IMPERIAL, static_cast<T>(1.0L / 17280.0L), "Twip" },
+			{ SystemID::IMPERIAL, static_cast<T>(1.0L / 12000.0L), "th", "Thou" },
+			{ SystemID::IMPERIAL, static_cast<T>(1.0L / 36.0L), "Bc", "Barleycorn" },
+			{ SystemID::IMPERIAL, static_cast<T>(1.0L / 12.0L), "\"", "Inch" },
+			{ SystemID::IMPERIAL, static_cast<T>(1.0L / 3.0L), "h", "Hand" },
+			{ SystemID::IMPERIAL, static_cast<T>(1.0L), "\'", "Feet" },
+			{ SystemID::IMPERIAL, static_cast<T>(3.0L), "yd", "Yard" },
+			{ SystemID::IMPERIAL, static_cast<T>(66.0L), "ch", "Chain" },
+			{ SystemID::IMPERIAL, static_cast<T>(660.0L), "fur", "Furlong" },
+			{ SystemID::IMPERIAL, static_cast<T>(5280.0L), "mi", "Mile" },
+			{ SystemID::IMPERIAL, static_cast<T>(15840.0L), "lea", "League" },
+			{ SystemID::IMPERIAL, static_cast<T>(6.0761L), "ftm", "Fathom" },
+			{ SystemID::IMPERIAL, static_cast<T>(607.61L), "Cable" },
+			{ SystemID::IMPERIAL, static_cast<T>(6076.1L), "nmi", "Nautical Mile" },
+			{ SystemID::IMPERIAL, static_cast<T>(66.0L / 100.0L), "Link" },
+			{ SystemID::IMPERIAL, static_cast<T>(66.0L / 4.0L), "rd", "Rod" }
 		};
 
 		const U* TWIP{ &units[0] };
@@ -231,13 +219,13 @@ namespace unit {
 		//#define DISABLE_NUTJOB_UNITS
 
 		// BEGIN IMPERIAL //
-		#ifndef DISABLE_NUTJOB_UNITS
+	#ifndef DISABLE_NUTJOB_UNITS
 		if (s.find("twip") < s.size())
 			return *Imperial.TWIP;
 		if (str == "th" || s.find("thou") < s.size())
 			return *Imperial.THOU;
 		if (str == "Bc" || s.find("barleycorn") < s.size())
-			return *Imperial.BARLEYCORN;
+			return *Imperial.BARLEYCORN; // just Bc
 		if (str == "h" || s.find("hand") < s.size())
 			return *Imperial.HAND;
 		if (str == "ch" || s.find("chain") < s.size())
@@ -247,14 +235,14 @@ namespace unit {
 		if (str == "lea" || s.find("league") < s.size())
 			return *Imperial.LEAGUE;
 		if (str == "ftm" || s.find("fathom") < s.size())
-			return *Imperial.FATHOM;
+			return *Imperial.FATHOM; // yes, fathoms are for nutjobs
 		if (s.find("cable") < s.size())
 			return *Imperial.CABLE;
 		if (s.find("link") < s.size())
 			return *Imperial.LINK;
 		if (str == "rd" || s.find("rod") < s.size())
 			return *Imperial.ROD;
-		#endif // DISABLE_NUTJOB_UNITS
+	#endif // DISABLE_NUTJOB_UNITS
 		if (str == "in" || s == "i" || s.find("inch") < s.size())
 			return *Imperial.INCH;
 		if (str == "ft" || s == "f" || s.find("foot") < s.size() || s.find("feet") < s.size())
@@ -304,15 +292,9 @@ namespace unit {
 		throw make_exception("Unrecognized Unit: \"", str, '\"');
 	}
 
-	inline std::ostream& configure_ostream(std::ostream& os)
-	{
-		// TODO: Add stuff here
-		return os;
-	}
-
 	/**
 	 * @struct	Convert
-	 * @brief	Performs a single conversion operation, and exposes std::ostream operator<<() to format and insert it into an output stream.
+	 * @brief	Performs a single conversion operation.
 	 */
 	struct Convert {
 		/// @brief	String Tuple
@@ -321,7 +303,6 @@ namespace unit {
 		using NumberT = long double;
 
 		Tuple _vars;
-		std::streamsize _min_indent{ 0ull };
 
 		///	@brief	Sorts the first & second arguments so that they are in the correct order when passed to the converter. Also removes any commas.
 		static inline Tuple convert_tuple(std::tuple<std::string, std::string, std::string>&& tpl)
@@ -350,46 +331,16 @@ namespace unit {
 		}
 
 		/// @brief	Default constructor
-		Convert(std::tuple<std::string, std::string, std::string>&& vars, const std::streamsize& min_indent = 0ull) : _vars{ std::move(convert_tuple(std::move(vars))) }, _min_indent{ min_indent } {}
+		Convert(std::tuple<std::string, std::string, std::string>&& vars) : _vars{ std::move(convert_tuple(std::move(vars))) } {}
 		/**
 		 * @brief			Constructor
 		 * @param unit_in	Input Unit (OR Input Value, if val_in is the input unit)
 		 * @param val_in	Input Value (OR Input Unit, if unit_in is the input value)
 		 * @param unit_out	Output Unit
 		 */
-		Convert(const std::string& unit_in, const std::string& val_in, const std::string& unit_out, const std::streamsize& min_indent = 0ull) : Convert(std::move(std::make_tuple(unit_in, val_in, unit_out)), min_indent) {}
+		Convert(const std::string& unit_in, const std::string& val_in, const std::string& unit_out) : Convert(std::move(std::make_tuple(unit_in, val_in, unit_out))) {}
 
 		NumberT operator()() const { return getResult(std::get<0>(_vars), std::get<1>(_vars), std::get<2>(_vars)); }
-
-		/**
-		 * @brief	Format and print the result of the conversion to the given ostream instance.
-		 *\n		This may change the floatfield and/or precision of the output stream.
-		 * @returns	std::ostream&
-		 */
-		friend std::ostream& operator<<(std::ostream& os, const Convert& conv)
-		{
-			// get inputs
-			const auto& [input_unit, input, output_unit] {conv._vars};
-
-			const auto
-				input_unit_str{ str::stringify(configure_ostream, input_unit) },
-				input_str{ str::stringify(configure_ostream, input) };
-
-			os // insert input
-				<< input_str
-				<< ' '
-				<< input_unit_str
-				<< str::VIndent(conv._min_indent, (input_str.size() + input_unit_str.size() + 1ull))
-				<< '=' << ' ';
-
-
-			const NumberT output{ conv.getResult(input_unit, input, output_unit) };
-			const auto output_str{ str::stringify(configure_ostream, output) };
-
-			os << output_str << ' ' << output_unit;
-
-			return os;
-		}
 	};
 
 }

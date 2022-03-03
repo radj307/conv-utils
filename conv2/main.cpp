@@ -43,7 +43,7 @@ inline std::ostream& print_help(std::ostream& os)
 #include <data.hpp>		// DATA
 #include <base.hpp>		// HEX
 #include <modulo.hpp>	// MODULO
-#include <unit.hpp>		// LENGTH
+#include <length.hpp>	// LENGTH
 #include <ascii.hpp>	// ASCII
 #include <radians.hpp>	// RADIANS
 #include <FOV.hpp>		// FOV
