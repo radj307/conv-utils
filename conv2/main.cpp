@@ -337,7 +337,7 @@ int main(const int argc, char** argv)
 
 		// DATA
 		if (checkarg('d', "data", true)) {
-			for (auto arg{ parameters.begin() }; arg != parameters.end(); ++arg) {
+			for (std::vector<std::string>::const_iterator arg{ parameters.begin() }; arg != parameters.end(); ++arg) {
 				if (const auto conv{ data::Conversion(arg, parameters.end()) }; conv._in.has_value() && conv._out.has_value()) {
 					if (!quiet) { // print input values
 						const auto in{ conv._in.value().get() };

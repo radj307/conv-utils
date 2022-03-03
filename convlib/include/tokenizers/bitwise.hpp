@@ -149,8 +149,9 @@ namespace bitwise {
 			case Lexeme::BRACKET_CLOSE:
 				throw make_exception("bitwise::Tokenizer::getNext():  Unmatched closing bracket \'", c, "\'!");
 			default:
-				return Token::NullToken;
+				break;
 			}
+			return Token::NullToken;
 		}
 	public:
 		Tokenizer(std::stringstream&& ss) : TokenizerBase<Lexeme, LexemeDict, TokenType, Token>(std::move(ss), Lexeme::WHITESPACE) {}
@@ -348,7 +349,7 @@ namespace bitwise {
 						break;
 					case TokenType::BINARY: [[fallthrough]];
 					case TokenType::DECIMAL: [[fallthrough]];
-					case TokenType::HEXADECIMAL: [[fallthrough]];
+					case TokenType::HEXADECIMAL:
 						setOperand(std::move(Operand(tkn, negateNext)));
 						negateNext = false;
 						break;
