@@ -183,9 +183,10 @@ namespace bitwise {
 	struct Operand {
 		bool negated;
 		base::value value;
+		std::string original_string;
 
-		Operand(std::string const& str, TokenType const& type, const bool& negated = false) : value{ parse(str, type) }, negated{ negated } {}
-		Operand(Token const& token, const bool& negated = false) : value{ parse(token.str, token.type) }, negated{ negated } {}
+		Operand(std::string const& str, TokenType const& type, const bool& negated = false) : value{ parse(str, type) }, negated{ negated }, original_string{ str } {}
+		Operand(Token const& token, const bool& negated = false) : value{ parse(token.str, token.type) }, negated{ negated }, original_string{ token.str } {}
 
 		operator base::value() const { return value; }
 
@@ -225,6 +226,11 @@ namespace bitwise {
 				return ~value ^ ~o.value;
 			else throw make_exception("Unhandled operation");
 		}
+
+		friend std::ostream& operator<<(std::ostream& os, const Operand& op)
+		{
+			return os << (op.negated ? "~" : "") << op.original_string;
+		}
 	};
 
 	enum class OperationType : unsigned char {
@@ -233,6 +239,11 @@ namespace bitwise {
 		XOR = '^',
 		AND = '&',
 	};
+
+	inline std::ostream& operator<<(std::ostream& os, const OperationType& operation)
+	{
+		return os << static_cast<unsigned char>(operation);
+	}
 
 	inline base::value calculateOperation(Operand const& left, OperationType const& operation, Operand const& right)
 	{
@@ -260,12 +271,14 @@ namespace bitwise {
 
 		OutputT parse() const
 		{
-			std::deque<Token> queue;
+			std::queue<Token> queue;
 			OutputT vec;
+			vec.reserve(tokens.size());
 			OperationType type{ OperationType::NONE };
 			std::unique_ptr<Operand> l, r;
 			bool negateNext{ false };
 
+			// lambda that creates a tuple (l, type, r) and pushes it to the output vector, then resets l, type, and r to default.
 			const auto& pushOperation{ [&l, &r, &type, &vec]() {
 				if (l == nullptr || r == nullptr || type == OperationType::NONE)
 					throw make_exception("bitwise::Parser::parse()::pushOperation() failed:  Cannot push null operation!");
@@ -274,11 +287,13 @@ namespace bitwise {
 				type = OperationType::NONE;
 				r = nullptr;
 			} };
+			// set the current operation (type). If the type is already set, throws an exception.
 			const auto& setType{ [&type](OperationType&& newType) {
 				if (type != OperationType::NONE)
 					throw make_exception("bitwise::Parser::parse() failed:  Too many operation types specified!");
 				type = std::move(newType);
 			} };
+			// set either (l or r) to an operand. If both operands are already set, throws an exception.
 			const auto& setOperand{ [&pushOperation, &l, &r, &type, &vec](Operand&& op) {
 				if (l != nullptr && r != nullptr && type != OperationType::NONE)
 					pushOperation();
@@ -300,17 +315,17 @@ namespace bitwise {
 				switch (it->type) {
 				case TokenType::END:
 					return vec;
-				case TokenType::ENCLOSED:
+				case TokenType::ENCLOSED: // recurse into brackets
 					for (const auto& operation : Parser(Tokenizer(std::move(std::stringstream{ it++->str })).tokenize()).parse())
-						queue.push_back(Token{ std::to_string(calculateOperation(operation)), TokenType::DECIMAL });
+						queue.push(Token{ std::to_string(calculateOperation(operation)), TokenType::DECIMAL });
 					break;
 				default:
-					queue.push_back(*it++);
+					queue.push(*it++);
 					break;
 				}
 				while (!queue.empty()) {
 					const auto tkn{ queue.front() };
-					queue.pop_front();
+					queue.pop();
 
 					switch (tkn.type) {
 					case TokenType::NEGATE:

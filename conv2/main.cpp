@@ -45,7 +45,7 @@ public:
 				<< "  -a  --ascii             ASCII Table Lookup Tool. Converts all characters to their ASCII values." << '\n'
 				<< "  -R  --rad               Degrees <=> Radians Converter." << '\n'
 				<< "  -F  --FOV <H:V>         Horizontal <=> Vertical Field of View Converter. Requires an aspect ratio, ex: \"16:9\"." << '\n'
-				<< "  -b  --bitwise           Perform simple bitwise calculations on binary numbers." << '\n'
+				<< "  -b  --bitwise           Perform bitwise calculations on binary, decimal, and/or hexadecimal numbers." << '\n'
 				;
 		}
 		else { // scoped help
@@ -166,19 +166,20 @@ public:
 			}
 			else if (str::equalsAny(subject, "b", "bitwise")) {
 				buffer
-					<< "  -b  --bitwise           Perform simple bitwise calculations." << '\n'
+					<< "  -b  --bitwise           Perform bitwise calculations on binary, decimal, and/or hexadecimal numbers." << '\n'
 					<< '\n'
 					<< "MODIFIERS:\n"
-					<< "  -B  --binary            Use binary numbers. (This is the default mode, and does nothing)"
-					<< "  -d  --decimal           Use decimal numbers instead of binary." << '\n'
-					<< "  -x  --hex               Use hexadecimal numbers instead of binary." << '\n'
+					<< "  -B  --binary            Print the output value(s) in binary instead of decimal."
+					<< "  -x  --hex               Print the output value(s) in hexadecimal instead of decimal." << '\n'
 					<< '\n'
 					<< "USAGE:\n"
 					<< "  conv2 <-b|--bitwise> [MODIFIER] <<[~]<INPUT> <OPERATION> [~]<OUTPUT>> ...>" << '\n'
 					<< '\n'
 					<< "  Any uncaptured commandline parameters are used as input." << '\n'
 					<< '\n'
-					<< "" << '\n'
+					<< "  Brackets are accepted, and order-of-operations is respected." << '\n'
+					<< "  Note that expressions within brackets are printed as the resulting value in decimal," << '\n'
+					<< "   regardless of any specified modifiers. If quiet is specified, no inputs are printed." << '\n'
 					;
 			}
 			else throw make_exception("Unrecognized help subject: \"", h._param, "\"!");
@@ -538,11 +539,21 @@ int main(const int argc, char** argv)
 		else if (checkarg('b', "bitwise")) {
 			bitwise::Parser parser{ bitwise::Tokenizer(std::move(parameters)).tokenize() };
 			for (const auto& it : parser.parse()) {
+				const auto& [left, operation, right] { it };
 				if (!quiet) {
-					// TODO: print inputs
+					using bitwise::operator<<;
+					buffer << color(OUTCOLOR::INPUT) << left << color() << ' ' << color(OUTCOLOR::OPERATOR) << operation << color() << ' ' << color(OUTCOLOR::INPUT) << right << color() << ' ' << color(OUTCOLOR::OPERATOR) << '=' << color() << ' ';
 				}
 				// print output
-				buffer << color(OUTCOLOR::OUTPUT) << bitwise::calculateOperation(it) << color() << '\n';
+				base::value result{ bitwise::calculateOperation(it) };
+				std::string outstr;
+				if (checkarg('B', "binary"))
+					outstr = base::decimalToBinary(result);
+				else if (checkarg('x', "hex"))
+					outstr = base::decimalToHex(result);
+				else
+					outstr = std::to_string(result);
+				buffer << color(OUTCOLOR::OUTPUT) << outstr << color() << '\n';
 			}
 		}
 		else throw make_exception("Nothing to do; no mode was specified!");
