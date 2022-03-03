@@ -136,11 +136,11 @@ namespace bitwise {
 				if (s.empty())
 					break;
 
-				if (base::validBinary(s))
+				if (str::isbinary(s))
 					return Token{ TokenType::BINARY, s };
-				else if (base::validDecimal(s))
+				else if (str::isdecimal(s))
 					return Token{ TokenType::DECIMAL, s };
-				else if (base::validHexadecimal(s))
+				else if (str::ishex(s))
 					return Token{ TokenType::HEXADECIMAL, s };
 				else throw make_exception("bitwise::Tokenizer::getNext():  Input sequence \"", s, "\" doesn't match any known operators or numbers!");
 			}
@@ -167,15 +167,15 @@ namespace bitwise {
 		}
 	};
 
-	inline base::value parse(std::string const& str, TokenType const& type) noexcept(false)
+	inline long long parse(std::string const& str, TokenType const& type) noexcept(false)
 	{
 		switch (type) {
 		case TokenType::BINARY:
-			return base::binaryToDecimal(str);
+			return str::toBase10(str, 2);
 		case TokenType::DECIMAL:
 			return str::stoll(str);
 		case TokenType::HEXADECIMAL:
-			return base::hexToDecimal(str);
+			return str::toBase10(str, 16);
 		default:
 			throw make_exception("Invalid token type received \"", tokenTypeToString(type), '\"');
 		}
@@ -183,15 +183,15 @@ namespace bitwise {
 
 	struct Operand {
 		bool negated;
-		base::value value;
+		long long value;
 		std::string original_string;
 
 		Operand(std::string const& str, TokenType const& type, const bool& negated = false) : value{ parse(str, type) }, negated{ negated }, original_string{ str } {}
 		Operand(Token const& token, const bool& negated = false) : value{ parse(token.str, token.type) }, negated{ negated }, original_string{ token.str } {}
 
-		operator base::value() const { return value; }
+		operator long long() const { return value; }
 
-		base::value operator&(const Operand& o) const
+		long long operator&(const Operand& o) const
 		{
 			if (negated && !o.negated)
 				return ~value & o.value;
@@ -203,7 +203,7 @@ namespace bitwise {
 				return ~value & ~o.value;
 			else throw make_exception("Unhandled operation");
 		}
-		base::value operator|(const Operand& o) const
+		long long operator|(const Operand& o) const
 		{
 			if (negated && !o.negated)
 				return ~value | o.value;
@@ -215,7 +215,7 @@ namespace bitwise {
 				return ~value | ~o.value;
 			else throw make_exception("Unhandled operation");
 		}
-		base::value operator^(const Operand& o) const
+		long long operator^(const Operand& o) const
 		{
 			if (negated && !o.negated)
 				return ~value ^ o.value;
@@ -246,7 +246,7 @@ namespace bitwise {
 		return os << static_cast<unsigned char>(operation);
 	}
 
-	inline base::value calculateOperation(Operand const& left, OperationType const& operation, Operand const& right)
+	inline long long calculateOperation(Operand const& left, OperationType const& operation, Operand const& right)
 	{
 		switch (operation) {
 		case OperationType::OR:
@@ -260,7 +260,7 @@ namespace bitwise {
 			throw make_exception("bitwise::calculateOperation() failed:  Received invalid operation type!");
 		}
 	}
-	inline base::value calculateOperation(std::tuple<Operand, OperationType, Operand> const& tpl)
+	inline long long calculateOperation(std::tuple<Operand, OperationType, Operand> const& tpl)
 	{
 		const auto& [l, op, r] {tpl};
 		return calculateOperation(l, op, r);
@@ -405,7 +405,7 @@ namespace bitwise {
 			r = std::nullopt;
 		}
 
-		base::value getResult() const
+		long long getResult() const
 		{
 			switch (type) {
 			case Type::AND:

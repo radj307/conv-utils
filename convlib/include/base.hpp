@@ -4,198 +4,94 @@
 #include <algorithm>
 #include <str.hpp>
 #include <indentor.hpp>
+#include <strmath.hpp>
 
 namespace base {
-	using value = long long;
-	using otherval = std::string;
+#	pragma region BaseEnum
 
+	namespace enumerator {
+		// @brief	The underlying type of the Base enum.
+		using BaseT = unsigned char;
+		// @brief	Enum that represents recognized numeric bases.
+		enum class Base : BaseT {
+			ZERO = 0,
+			BINARY = 2,
+			OCTAL = 8,
+			DECIMAL = 10,
+			HEXADECIMAL = 16,
+		};
+		[[nodiscard]] Base operator|(const Base& l, const Base& r) { return static_cast<Base>(static_cast<BaseT>(l) | static_cast<BaseT>(r)); }
+		[[nodiscard]] Base operator^(const Base& l, const Base& r) { return static_cast<Base>(static_cast<BaseT>(l) ^ static_cast<BaseT>(r)); }
+		[[nodiscard]] Base operator&(const Base& l, const Base& r) { return static_cast<Base>(static_cast<BaseT>(l) & static_cast<BaseT>(r)); }
+		[[nodiscard]] bool operator==(Base& base, const BaseT& o) { return static_cast<BaseT>(base) == o; }
+		[[nodiscard]] bool operator==(BaseT& baset, const Base& o) { return baset == static_cast<BaseT>(o); }
+		[[nodiscard]] bool operator!=(Base& base, auto&& o) { return !operator==(base, std::forward<decltype(o)>(o)); }
 
-	inline value binaryToDecimal(const std::string& binary) noexcept(false)
-	{
-		value v{ 0ll };
-		for (const auto& ch : binary) {
-			v <<= 1ll;
-			if (ch == '1')
-				v |= 0b1;
-			else if (ch != '0')
-				throw make_exception("Invalid binary number: \'", ch, '\'');
-		}
-		return v;
-	}
-	inline otherval decimalToBinary(value n) noexcept
-	{
-		otherval v{};
-		for (; n > 0ll; n /= 2ll)
-			v += n % 2ll;
-		return v;
-	}
-
-	/**
-	 * @brief Converts a given character to its equivalent hexadecimal value.
-	 * @param ch	- Input character. 1-9, A=10, B=11, C=12, D=13, E=14, F=15. Any character outside of this range will throw an exception.
-	 * @returns value
-	 */
-	inline value hexToDecimal(const char ch) noexcept(false)
-	{
-		if (isdigit(ch))
-			return static_cast<value>(ch - '0');
-		else if (isalpha(ch))
-			return (static_cast<value>(str::toupper(ch) - 'A') + 10);
-		throw make_exception("getHexValue()\tFailed to convert \'", ch, "\' to hexadecimal!");
-	}
-
-	/**
-	 * @brief			Convert from hexadecimal to decimal.
-	 * @param hex		Input hexadecimal value.
-	 * @returns			value
-	 */
-	inline value hexToDecimal(otherval const& hex) noexcept(false)
-	{
-		const auto from_base{ 16 };
-		if (!hex.empty()) {
-			value power{ 1 }, result{ 0 };
-			for (auto c{ hex.rbegin() }; c != hex.rend(); ++c) {
-				if (*c == 'x')
-					break; // avoid checking "0x" prefix
-				const auto v{ hexToDecimal(*c) };
-				if (v >= from_base)
-					throw make_exception("Hexadecimal value \'", *c, "\' converted to invalid hex number \"", v, "\"!\n", indent(10), "Please report this error to the developer!");
-				result += v * power;
-				power *= from_base;
+		inline std::string BaseToString(const Base& b)
+		{
+			switch (b) {
+			case Base::BINARY:
+				return "Binary";
+			case Base::OCTAL:
+				return "Octal";
+			case Base::DECIMAL:
+				return "Decimal";
+			case Base::HEXADECIMAL:
+				return "Hexadecimal";
+			case Base::ZERO: [[fallthrough]];
+			default:
+				break;
 			}
-			return result;
+			return "(null)";
 		}
-		else throw make_exception("Received an empty hexadecimal number, conversion failed!");
-	}
+		inline Base StringToBase(std::string str)
+		{
+			str = str::tolower(str);
 
-	/**
-	 * @brief			Convert from decimal to hexadecimal.
-	 * @param dec		Input decimal value.
-	 * @param ...fmt	Additional stream formatting objects to include before printing the value.
-	 * @returns			otherval
-	 */
-	template<var::Streamable<std::stringstream>... Ts>
-	inline otherval decimalToHex(value const& dec, Ts&&... fmt) noexcept
-	{
-		return str::stringify(
-			std::hex,
-			std::forward<Ts>(fmt)...,
-			dec
-		);
-	}
+			if (str == "binary")
+				return Base::BINARY;
+			else if (str == "octal")
+				return Base::OCTAL;
+			else if (str == "decimal")
+				return Base::DECIMAL;
+			else if (str == "hexadecimal")
+				return Base::HEXADECIMAL;
 
-	/**
-	 * @brief			Convert from decimal to hexadecimal.
-	 * @param dec		Input decimal value as a string.
-	 * @param ...fmt	Additional stream formatting objects to include before printing the value.
-	 * @returns			otherval
-	 */
-	template<var::Streamable<std::stringstream>... Ts>
-	inline otherval decimalToHex(std::string const& dec, Ts&&... fmt) noexcept
-	{
-		return str::stringify(
-			std::hex,
-			std::forward<Ts>(fmt)...,
-			str::stoll(dec)
-		);
+			return Base::ZERO;
+		}
 	}
+	using enumerator::Base;
 
-	/**
-	 * @enum ValueBase
-	 * @brief Used to represent the base of a number. Only used internally within the base namespace.
-	 */
-	enum class ValueBase : unsigned char {
-		INVALID,
-		BINARY,
-		OCTAL,
-		DECIMAL,
-		HEXADECIMAL,
-	};
+#	pragma endregion BaseEnum
 
-	static bool validBinary(const std::string& str)
+	inline Base detectBase(const std::string& s, const Base& allowBases = Base::BINARY | Base::OCTAL | Base::DECIMAL | Base::HEXADECIMAL)
 	{
-		const auto& lc{ str::tolower(str) };
-		return std::all_of(str.begin() + (str::startsWith(lc, "0b") ? 2ull : 0ull), str.end(), [](auto&& c) {
-			return c == '0' || c == '1';
-		});
+		const auto& allow{ [&allowBases](const Base& base) {
+			return (base & allowBases) != Base::ZERO;
+		} };
+		// check string prefix:
+		if (str::startsWith(s, "0b"))
+			return Base::BINARY;
+		else if (str::startsWith(s, '\\'))
+			return Base::OCTAL;
+		else if (str::startsWith(s, "0x"))
+			return Base::HEXADECIMAL;
+		// fallback to checking string contents:
+		// don't check binary or octal because both must be explicitly specified and both contain all decimal digits.
+		else if (str::isdecimal(s))
+			return Base::DECIMAL;
+		else if (str::ishex(s))
+			return Base::HEXADECIMAL;
+		// invalid number:
+		return Base::ZERO;
 	}
-	static bool validOctal(std::string str)
-	{
-		str = str::tolower(str);
-		return std::all_of(str.begin() + !!str::startsWith(str, '\\'), str.end(), [](auto&& c) {
-			return c >= '0' && c <= '7';
-		});
-	}
-	static bool validDecimal(std::string str)
-	{
-		return std::all_of(str.begin() + !!str::startsWith(str, '-'), str.end(), [](auto&& c) {
-			return isdigit(c) || c == '.';
-		});
-	}
-	static bool validHexadecimal(const std::string& str)
-	{
-		const auto& lc{ str::tolower(str) };
-		return std::all_of(lc.begin() + (str::startsWith(lc, "0x") ? 2ull : (str.size() > 0ull && str.at(0ull) == '#' ? 1ull : 0ull)), lc.end(), [](auto&& c) {
-			return isdigit(c) || (c >= 'a' && c <= 'f');
-		});
-	}
-
-	base::ValueBase operator|(const base::ValueBase& l, const base::ValueBase r)
-	{
-		return static_cast<base::ValueBase>(static_cast<unsigned char>(l) | static_cast<unsigned char>(r));
-	}
-	base::ValueBase operator&(const base::ValueBase& l, const base::ValueBase r)
-	{
-		return static_cast<base::ValueBase>(static_cast<unsigned char>(l) & static_cast<unsigned char>(r));
-	}
-	base::ValueBase operator^(const base::ValueBase& l, const base::ValueBase r)
-	{
-		return static_cast<base::ValueBase>(static_cast<unsigned char>(l) ^ static_cast<unsigned char>(r));
-	}
-
-	base::ValueBase& operator|=(base::ValueBase& l, const base::ValueBase r)
-	{
-		return l = static_cast<base::ValueBase>(static_cast<unsigned char>(l) | static_cast<unsigned char>(r));
-	}
-	base::ValueBase& operator&=(base::ValueBase& l, const base::ValueBase r)
-	{
-		return l = static_cast<base::ValueBase>(static_cast<unsigned char>(l) & static_cast<unsigned char>(r));
-	}
-	base::ValueBase& operator^=(base::ValueBase& l, const base::ValueBase r)
-	{
-		return l = static_cast<base::ValueBase>(static_cast<unsigned char>(l) ^ static_cast<unsigned char>(r));
-	}
-
-	template<var::numeric T> [[nodiscard]] bool operator==(const base::ValueBase& l, const T& r)
-	{
-		return static_cast<T>(l) == r;
-	}
-	template<var::numeric T> [[nodiscard]] bool operator!=(const base::ValueBase& l, const T& r)
-	{
-		return static_cast<T>(l) != r;
-	}
-
-
-	inline ValueBase detect_base(const std::string& arg, const ValueBase& allowedTypes)
-	{
-		if ((allowedTypes & ValueBase::BINARY) != 0 && validBinary(arg))
-			return ValueBase::BINARY;
-		else if ((allowedTypes & ValueBase::OCTAL) != 0 && validOctal(arg))
-			return ValueBase::OCTAL;
-		else if ((allowedTypes & ValueBase::DECIMAL) != 0 && validDecimal(arg))
-			return ValueBase::DECIMAL;
-		else if ((allowedTypes & ValueBase::HEXADECIMAL) != 0 && validHexadecimal(arg))
-			return ValueBase::HEXADECIMAL;
-		else return ValueBase::INVALID;
-	}
-
 }
 
-using base::operator&;
-using base::operator&=;
-using base::operator|;
-using base::operator|=;
-using base::operator^;
-using base::operator^=;
-using base::operator==;
-using base::operator!=;
+using base::enumerator::Base;
+using base::enumerator::operator|;
+using base::enumerator::operator^;
+using base::enumerator::operator&;
+using base::enumerator::operator==;
+using base::enumerator::operator!=;
+using base::enumerator::BaseToString;
+using base::enumerator::StringToBase;

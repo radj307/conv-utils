@@ -169,7 +169,8 @@ public:
 					<< "  -b  --bitwise           Perform bitwise calculations on binary, decimal, and/or hexadecimal numbers." << '\n'
 					<< '\n'
 					<< "MODIFIERS:\n"
-					<< "  -B  --binary            Print the output value(s) in binary instead of decimal."
+					<< "  -B  --binary            Print the output value(s) in binary instead of decimal." << '\n'
+					<< "  -O  --octal             Print the output value(s) in octal instead of decimal." << '\n'
 					<< "  -x  --hex               Print the output value(s) in hexadecimal instead of decimal." << '\n'
 					<< '\n'
 					<< "USAGE:\n"
@@ -302,7 +303,8 @@ int main(const int argc, char** argv)
 
 		// handle blocking arguments
 		color.setActive(!checkarg('n', "no-color"));
-		bool quiet{ checkarg('q', "quiet") };
+		bool extraQuiet{ checkarg('Q', "extra-quiet") };
+		bool quiet{ extraQuiet || checkarg('q', "quiet") };
 		bool numGrouping{ checkarg('g', "group") };
 
 		// [-h|--help]
@@ -312,7 +314,7 @@ int main(const int argc, char** argv)
 		}
 		// [-v|--version]
 		else if (checkarg('v', "version")) {
-			std::cout << (quiet ? "" : "conv2  ") << CONV2_VERSION << std::endl;
+			std::cout << (quiet ? "" : "conv2  v") << CONV2_VERSION << std::endl;
 			return 0;
 		}
 
@@ -358,14 +360,14 @@ int main(const int argc, char** argv)
 			for (const auto& it : parameters) {
 				if (!quiet)
 					buffer << color(OUTCOLOR::INPUT) << it << color() << ' ' << color(OUTCOLOR::OPERATOR) << '=' << color() << ' ';
-				switch (base::detect_base(it, base::ValueBase::DECIMAL | base::ValueBase::HEXADECIMAL)) {
-				case base::ValueBase::DECIMAL:
-					buffer << color(OUTCOLOR::OUTPUT) << base::decimalToHex(it, std::uppercase, (numGrouping ? str::NumberGrouping : str::Placeholder), "0x") << color() << '\n';
+				switch (base::detectBase(it, Base::DECIMAL | Base::HEXADECIMAL)) {
+				case Base::DECIMAL:
+					buffer << color(OUTCOLOR::OUTPUT) << "0x" << str::fromBase10(it, 16) << color() << '\n';
 					break;
-				case base::ValueBase::HEXADECIMAL:
-					buffer << color(OUTCOLOR::OUTPUT) << base::hexToDecimal(it) << color() << '\n';
+				case Base::HEXADECIMAL:
+					buffer << color(OUTCOLOR::OUTPUT) << str::toBase10(it, 16) << color() << '\n';
 					break;
-				case base::ValueBase::INVALID: [[fallthrough]];
+				case Base::ZERO: [[fallthrough]];
 				default:
 					throw make_exception("Invalid number: \"", it, "\"!");
 				}
@@ -545,12 +547,14 @@ int main(const int argc, char** argv)
 					buffer << color(OUTCOLOR::INPUT) << left << color() << ' ' << color(OUTCOLOR::OPERATOR) << operation << color() << ' ' << color(OUTCOLOR::INPUT) << right << color() << ' ' << color(OUTCOLOR::OPERATOR) << '=' << color() << ' ';
 				}
 				// print output
-				base::value result{ bitwise::calculateOperation(it) };
+				long long result{ bitwise::calculateOperation(it) };
 				std::string outstr;
 				if (checkarg('B', "binary"))
-					outstr = base::decimalToBinary(result);
+					outstr = str::fromBase10(result, 2);
+				else if (checkarg('O', "octal"))
+					outstr = str::fromBase10(result, 8);
 				else if (checkarg('x', "hex"))
-					outstr = base::decimalToHex(result);
+					outstr = str::fromBase10(result, 16);
 				else
 					outstr = std::to_string(result);
 				buffer << color(OUTCOLOR::OUTPUT) << outstr << color() << '\n';
