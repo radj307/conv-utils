@@ -3,6 +3,7 @@
 #include <TermAPI.hpp>
 #include <ParamsAPI2.hpp>
 #include <palette.hpp>
+#include <hasPendingDataSTDIN.h>
 
 #include <iostream>
 #include <iomanip>
@@ -155,7 +156,21 @@ int main(const int argc, char** argv)
 			return 0;
 		}
 
-		const auto& parameters{ args.typegetv_all<opt::Parameter>() };
+		std::vector<std::string> parameters;
+		if (hasPendingDataSTDIN()) {
+			const size_t& expand_by{ parameters.size() * 2 };
+			parameters.reserve(parameters.size() + expand_by);
+			std::string s;
+			while (std::cin >> s) {
+				if (s.empty())
+					continue;
+				parameters.emplace_back(s);
+				if (parameters.size() >= parameters.capacity() - 1ull)
+					parameters.reserve(parameters.size() + expand_by);
+			}
+		}
+		for (const auto& it : args.typegetv_all<opt::Parameter>())
+			parameters.emplace_back(it);
 
 		StreamFormatter streamfmt{ &args };
 		buffer << streamfmt;
