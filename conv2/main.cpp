@@ -330,6 +330,15 @@ int main(const int argc, char** argv)
 					buffer << color(OUTCOLOR::OUTPUT) << FOV::toHorizontal(str::stold(it), aspect) << color() << " H\n";
 				else
 					buffer << color(OUTCOLOR::OUTPUT) << FOV::toVertical(str::stold(it), aspect) << color() << " V\n";
+		// BITWISE
+		else if (checkarg('b', "bitwise")) {
+			bitwise::Parser parser{ bitwise::Tokenizer(std::move(parameters)).tokenize() };
+			for (const auto& it : parser.parse()) {
+				if (!quiet) {
+					// TODO: print inputs
+				}
+				// print output
+				buffer << color(OUTCOLOR::OUTPUT) << bitwise::calculateOperation(it) << color() << '\n';
 			}
 		}
 		else throw make_exception("Nothing to do; no mode was specified!");

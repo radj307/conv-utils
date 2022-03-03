@@ -12,7 +12,8 @@ project(convlib VERSION ${CONV_VERSION} LANGUAGES CXX)
 file(GLOB HEADERS
 	RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
 	CONFIGURE_DEPENDS
-	"include/*.h*"
+	"include/*.h"
+	"include/*/*.h*"
 )
 file(GLOB SRCS 
 	RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
@@ -44,5 +45,5 @@ target_include_directories(convlib PUBLIC
 )
 
 # Link library dependencies
-target_link_libraries(convlib PUBLIC shared TermAPI strlib filelib optlib)
+target_link_libraries(convlib PUBLIC shared tokenlib TermAPI strlib filelib optlib)
 
