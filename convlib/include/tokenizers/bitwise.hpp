@@ -97,9 +97,8 @@ namespace bitwise {
 	using Token = token::base::TokenBase<TokenType>;
 
 	class Tokenizer : token::base::TokenizerBase<Lexeme, LexemeDict, TokenType, Token> {
-		Token getNext() override
+		Token getNextToken(const char& c) override
 		{
-			char c{ getch() };
 			std::string s; //< used to pass data between case labels when falling through
 
 			switch (get_lexeme(c)) {
@@ -181,6 +180,10 @@ namespace bitwise {
 		}
 	}
 
+	/**
+	 * @struct	Operand
+	 * @brief	An object that represents a numerical number in a specific base.
+	 */
 	struct Operand {
 		bool negated;
 		long long value;

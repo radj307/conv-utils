@@ -40,6 +40,7 @@ public:
 				<< "MODES:\n"
 				<< "  -d  --data              Data Size Conversions. (B, kB, MB, GB, etc.)" << '\n'
 				<< "  -x  --hex               Hexadecimal <=> Decimal Conversions." << '\n'
+				<< "  -B  --base              Number representation base conversions. (Binary, Octal, Decimal, Hexadecimal)" << '\n'
 				<< "  -m  --mod               Modulo Calculator." << '\n'
 				<< "  -l  --len               Length Unit Conversions. (meters, feet, etc.)" << '\n'
 				<< "  -a  --ascii             ASCII Table Lookup Tool. Converts all characters to their ASCII values." << '\n'
@@ -83,6 +84,17 @@ public:
 					<< "    - It contains at least one alphabetic character in the range [A - F]. (case-insensitive)" << '\n'
 					<< "    - It is prefixed by \"0x\"." << '\n'
 					<< "  If neither of the above are true for an input, it is assumed to be in base-10." << '\n'
+					;
+			}
+			else if (str::equalsAny(subject, "B", "base")) {
+				buffer
+					<< "  -B  --base              Number representation base conversions. (Binary, Octal, Decimal, Hexadecimal)" << '\n'
+					<< '\n'
+					<< "USAGE:\n"
+					<< "  conv2 <-B|--base> < <<BASE>:<INPUT>> <BASE> >" << '\n'
+					<< '\n'
+					<< "  Any uncaptured commandline parameters are used as input." << '\n'
+					<< ""
 					;
 			}
 			else if (str::equalsAny(subject, "m", "mod", "modulo")) {
@@ -174,13 +186,28 @@ public:
 					<< "  -x  --hex               Print the output value(s) in hexadecimal instead of decimal." << '\n'
 					<< '\n'
 					<< "USAGE:\n"
-					<< "  conv2 <-b|--bitwise> [MODIFIER] <<[~]<INPUT> <OPERATION> [~]<OUTPUT>> ...>" << '\n'
+					<< "  conv2 <-b|--bitwise> [MODIFIER] < <[~]<INPUT> <OPERATOR> [~]<INPUT>> ... >" << '\n'
 					<< '\n'
 					<< "  Any uncaptured commandline parameters are used as input." << '\n'
 					<< '\n'
-					<< "  Brackets are accepted, and order-of-operations is respected." << '\n'
-					<< "  Note that expressions within brackets are printed as the resulting value in decimal," << '\n'
-					<< "   regardless of any specified modifiers. If quiet is specified, no inputs are printed." << '\n'
+					<< "BITWISE SYNTAX:\n"
+					<< "  Each expression is composed of an operator, and two input values; Input values are assumed to be represented" << '\n'
+					<< "   in base-10 (decimal), unless prefixed with \"0b\" for base-2 (binary), or \"0x\" for base-16 (hexadecimal)." << '\n'
+					<< "  Example of the base-10 representation of `60` in binary and hex, using their respective prefixes:" << '\n'
+					<< '\n'
+					<< "       `0b111100`" << '\n'
+					<< "       `0x3C`" << '\n'
+					<< '\n'
+					<< "  The operation may be specified with the literal operator name ( 'AND', 'OR', 'XOR', 'NOT' ) or the" << '\n'
+					<< "   standard symbols ( | ^ & ~ ), the latter of which must be escaped when used directly in the shell." << '\n'
+					<< "   This behavior is designed to support piped input from the shell, for example by using the `cat`" << '\n'
+					<< "   or `echo` commands in combination with the '|' pipe operator like so:" << '\n'
+					<< '\n'
+					<< "       `cat \"file\" | conv2 -Qbx`" << '\n'
+					<< '\n'
+					<< "  You can control the order-of-operations by using brackets/parenthesis '()'." << '\n'
+					<< "  Note that input expressions within brackets are printed as the resulting value in base 10 (decimal)," << '\n'
+					<< "   regardless of any specified modifiers. This is only relevant if the quiet flag is not specified." << '\n'
 					;
 			}
 			else throw make_exception("Unrecognized help subject: \"", h._param, "\"!");
@@ -373,6 +400,30 @@ int main(const int argc, char** argv)
 				}
 			}
 		}
+		// BASE
+		else if (checkarg('B', "base")) {
+			const auto& splitArg{ [](const std::string& str) -> std::pair<int, std::string> {
+				int base{ 10 };
+				std::string value{ 0ll };
+				if (const auto& pos{ str.find(':') }; pos != std::string::npos) {
+					base = str::stoi(str.substr(0ull, pos));
+					value = str.substr(pos + 1ull);
+				}
+				else value = str;
+				return{ base, value };
+			} };
+
+			std::pair<int, std::string> in;
+			int outBase{ 10 };
+
+			const auto& calculate{ [&in, &outBase]() {
+				
+			} };
+
+			for (auto it{ parameters.begin() }; it != parameters.end(); ++it) {
+
+			}
+		}
 		// MODULO
 		else if (checkarg('m', "mod", true)) {
 			for (auto it{ parameters.begin() }; it != parameters.end(); ++it) {
@@ -539,8 +590,7 @@ int main(const int argc, char** argv)
 		}
 		// BITWISE
 		else if (checkarg('b', "bitwise")) {
-			bitwise::Parser parser{ bitwise::Tokenizer(std::move(parameters)).tokenize() };
-			for (const auto& it : parser.parse()) {
+			for (const auto& it : bitwise::Parser{ std::move(bitwise::Tokenizer{ std::move(parameters) }.tokenize()) }.parse()) {
 				const auto& [left, operation, right] { it };
 				if (!quiet) {
 					using bitwise::operator<<;
@@ -548,16 +598,27 @@ int main(const int argc, char** argv)
 				}
 				// print output
 				long long result{ bitwise::calculateOperation(it) };
-				std::string outstr;
-				if (checkarg('B', "binary"))
-					outstr = str::fromBase10(result, 2);
-				else if (checkarg('O', "octal"))
-					outstr = str::fromBase10(result, 8);
-				else if (checkarg('x', "hex"))
-					outstr = str::fromBase10(result, 16);
-				else
-					outstr = std::to_string(result);
-				buffer << color(OUTCOLOR::OUTPUT) << outstr << color() << '\n';
+				buffer << color(OUTCOLOR::OUTPUT);
+				int base{ 10 };
+				switch ([&checkarg]() -> unsigned char {
+					if (checkarg('B', "binary")) return 2;
+					else if (checkarg('O', "octal")) return 8;
+					else if (checkarg('x', "hex")) return 16;
+					else return 10;
+				}()) {
+				case 2:
+					base = 2;
+				case 8:
+					base = 8;
+				case 16:
+					base = 16;
+					buffer << str::fromBase10(result, base);
+					break;
+				case 10:
+					buffer << result;
+					break;
+				}
+				buffer << color() << '\n';
 			}
 		}
 		else throw make_exception("Nothing to do; no mode was specified!");
