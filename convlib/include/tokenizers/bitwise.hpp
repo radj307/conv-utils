@@ -193,39 +193,15 @@ namespace bitwise {
 
 		long long operator&(const Operand& o) const
 		{
-			if (negated && !o.negated)
-				return ~value & o.value;
-			else if (!negated && !o.negated)
-				return value & o.value;
-			else if (!negated && o.negated)
-				return value & ~o.value;
-			else if (negated && o.negated)
-				return ~value & ~o.value;
-			else throw make_exception("Unhandled operation");
+			return (negated ? ~value : value) & (o.negated ? ~o.value : o.value);
 		}
 		long long operator|(const Operand& o) const
 		{
-			if (negated && !o.negated)
-				return ~value | o.value;
-			else if (!negated && !o.negated)
-				return value | o.value;
-			else if (!negated && o.negated)
-				return value | ~o.value;
-			else if (negated && o.negated)
-				return ~value | ~o.value;
-			else throw make_exception("Unhandled operation");
+			return (negated ? ~value : value) | (o.negated ? ~o.value : o.value);
 		}
 		long long operator^(const Operand& o) const
 		{
-			if (negated && !o.negated)
-				return ~value ^ o.value;
-			else if (!negated && !o.negated)
-				return value ^ o.value;
-			else if (!negated && o.negated)
-				return value ^ ~o.value;
-			else if (negated && o.negated)
-				return ~value ^ ~o.value;
-			else throw make_exception("Unhandled operation");
+			return (negated ? ~value : value) ^ (o.negated ? ~o.value : o.value);
 		}
 
 		friend std::ostream& operator<<(std::ostream& os, const Operand& op)
