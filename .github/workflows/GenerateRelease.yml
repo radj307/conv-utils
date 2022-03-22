@@ -10,55 +10,63 @@ on:
         required:     false
         default:      ''
         type:         string
-      tag: # Target tag to make a release for
-        description:  'Release Tag ()'
+      tag:
+        description:  'Tag'
         required:     false
         default:      ''
         type:         string
-      is-draft: # Input that selects whether to make a draft release or a public release
-        description:  'Make Draft Release'
+      is-draft:
+        description:  'Draft'
         required:     false
         default:      'true'
         type:         boolean
-      is-prerelease: # Input that selects whether to make a pre-release or normal release
-        description:  'Make Pre-Release'
+      is-prerelease:
+        description:  'Pre-Release'
         required:     false
         default:      'false'
         type:         boolean
       autogenerate:
-        description:  'Autogenerate Release Notes From Commits'
+        description:  'Autogenerate Release Notes'
         required:     false
         default:      'false'
         type:         boolean
       body:
-        description:  'Release Body Paragraph'
+        description:  'Description'
         required:     false
         default:      ''
 
 env:
   # [PROJECT_NAME]
   # Currently this is used for the following scenarios:
-  # - Executable Name
   # - Build Subdirectory Name
   # - Archive Name Prefix
   PROJECT_NAME: 'conv2'
+  # [BINARY_NAME]
+  # The name of the binary executable file, excluding extensions.
+  # If this is blank, the value specified by '$PROJECT_NAME' is used instead. (See the 'Configure Environment' step.)
+  BINARY_NAME: ''
   BUILD_TYPE: Release
+  CMAKE_GENERATOR: Ninja
 
 jobs:
   create-binaries:
     runs-on: ${{matrix.os}}
     strategy:
       matrix:
-        os:         [ ubuntu-latest, windows-2022, macos-latest ]
+        os:         [ ubuntu-latest, windows-2022, macos-latest ] # Use 'windows-2022' instead of 'windows-latest' because it seems to have problems
       fail-fast:    true
 
     steps:
+      # Configure the environment
+    - name: Configure Environment
+      if:   ${{ env.BINARY_NAME == '' }}
+      run:  echo "BINARY_NAME=$PROJECT_NAME" >> $GITHUB_ENV
+    
       # Check out the repository
     - uses: actions/checkout@v2
       with:
         submodules:   recursive
         fetch-depth:  0
-
       
     # Set up platform dependencies
       # Ninja
@@ -75,18 +83,18 @@ jobs:
       # Windows
     - name:   Configure CMake (Windows)
       if:     ${{ runner.os == 'Windows' }}
-      run:    cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -G Ninja
+      run:    cmake -B '${{github.workspace}}/build' -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -G '$CMAKE_GENERATOR'
       # Linux/macOS
     - name:   Configure CMake (Linux/macOS)
       if:     ${{ runner.os != 'Windows' }}
-      run:    cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -G Ninja
+      run:    cmake -B '${{github.workspace}}/build' -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -G '$CMAKE_GENERATOR'
       env:
         CC:   gcc-10
         CXX:  g++-10
 
     # Build Binary
     - name: Build
-      run:  cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+      run:  cmake --build '${{github.workspace}}/build' --config '${{env.BUILD_TYPE}}'
       
     # Create Packaged Release Archive
       # Windows
@@ -94,14 +102,14 @@ jobs:
       if:     ${{ runner.os == 'Windows' }}
       run:    |
               cd "${{github.workspace}}/build/${{env.PROJECT_NAME}}"
-              Compress-Archive "${{env.PROJECT_NAME}}.exe" "${{env.PROJECT_NAME}}-$(.\${{env.PROJECT_NAME}} -vq)-Windows.zip"
+              Compress-Archive "${{env.BINARY_NAME}}.exe" "${{env.PROJECT_NAME}}-$(.\${{env.PROJECT_NAME}} -vq)-Windows.zip"
       shell:  powershell
       # Linux / macOS
     - name:   Create Archive (Linux/macOS)
       if:     ${{ runner.os != 'Windows' }}
       run:    |
               cd "${{github.workspace}}/build/${{env.PROJECT_NAME}}"
-              zip -T9 "${{env.PROJECT_NAME}}-$(./${{env.PROJECT_NAME}} -vq)-${{runner.os}}.zip" "${{env.PROJECT_NAME}}"
+              zip -T9 "${{env.PROJECT_NAME}}-$(./${{env.PROJECT_NAME}} -vq)-${{runner.os}}.zip" "${{env.BINARY_NAME}}"
       shell:  bash
       
     # Upload Artifact
