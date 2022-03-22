@@ -46,7 +46,6 @@ env:
   # If this is blank, the value specified by '$PROJECT_NAME' is used instead. (See the 'Configure Environment' step.)
   BINARY_NAME: ''
   BUILD_TYPE: Release
-  CMAKE_GENERATOR: Ninja
 
 jobs:
   create-binaries:
@@ -83,11 +82,11 @@ jobs:
       # Windows
     - name:   Configure CMake (Windows)
       if:     ${{ runner.os == 'Windows' }}
-      run:    cmake -B '${{github.workspace}}/build' -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -G '$CMAKE_GENERATOR'
+      run:    cmake -B '${{github.workspace}}/build' -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -G Ninja
       # Linux/macOS
     - name:   Configure CMake (Linux/macOS)
       if:     ${{ runner.os != 'Windows' }}
-      run:    cmake -B '${{github.workspace}}/build' -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -G '$CMAKE_GENERATOR'
+      run:    cmake -B '${{github.workspace}}/build' -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -G Ninja
       env:
         CC:   gcc-10
         CXX:  g++-10
