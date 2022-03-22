@@ -286,25 +286,6 @@ struct StreamFormatter {
 
 int main(const int argc, char** argv)
 {
-
-	if (str::stob("true")) {
-		std::cout << "Successful\n";
-	}
-	if (!str::stob("false")) {
-		std::cout << "Successful\n";
-	}
-
-	if (str::stob("          true")) {
-		std::cout << "Successful\n";
-	}
-	if (str::stob("\ttrue asdf")) {
-		std::cout << "Successful\n";
-	}
-
-
-	return 0;
-
-
 	enum class OUTCOLOR : unsigned char {
 		NONE,
 		INPUT,
