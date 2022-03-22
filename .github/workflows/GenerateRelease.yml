@@ -101,7 +101,7 @@ jobs:
       if:     ${{ runner.os == 'Windows' }}
       run:    |
               cd "${{github.workspace}}/build/${{env.PROJECT_NAME}}"
-              Compress-Archive "${{env.BINARY_NAME}}.exe" "${{env.PROJECT_NAME}}-$(.\${{env.PROJECT_NAME}} -vq)-Windows.zip"
+              Compress-Archive "$BINARY_NAME.exe" "${{env.PROJECT_NAME}}-$(.\${{env.PROJECT_NAME}} -vq)-Windows.zip"
       shell:  powershell
       # Linux / macOS
     - name:   Create Archive (Linux/macOS)
