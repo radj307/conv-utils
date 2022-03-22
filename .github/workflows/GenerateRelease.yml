@@ -18,7 +18,7 @@ on:
       is-draft:
         description:  'Draft'
         required:     false
-        default:      'true'
+        default:      'false'
         type:         boolean
       is-prerelease:
         description:  'Pre-Release'
