@@ -2,7 +2,7 @@ name: Generate Release
 
 on:
   push:
-    tags: '*.*.*'
+    tags: [ '*.*.*' ]
   workflow_dispatch:
     inputs:
       name:
@@ -18,17 +18,17 @@ on:
       is-draft:
         description:  'Draft'
         required:     false
-        default:      'false'
+        default:      false
         type:         boolean
       is-prerelease:
         description:  'Pre-Release'
         required:     false
-        default:      'false'
+        default:      false
         type:         boolean
       autogenerate:
         description:  'Autogenerate Release Notes'
         required:     false
-        default:      'false'
+        default:      false
         type:         boolean
       body:
         description:  'Description'
@@ -117,8 +117,6 @@ jobs:
   create-release:
     needs: create-binaries      
     runs-on: ubuntu-latest
-    strategy:
-      max-parallel: 1    
     
     steps:
     # Download Artifacts
@@ -145,7 +143,7 @@ jobs:
       #if:   ${{ github.event_name == 'workflow_dispatch' }}
       uses: softprops/action-gh-release@v1
       with:
-        draft:                    ${{ github.event.inputs.is-draft || true }}
+        draft:                    ${{ github.event.inputs.is-draft }}
         prerelease:               ${{ github.event.inputs.is-prerelease || false }}
         tag_name:                 ${{ steps.get_version.outputs.VERSION }}
         name:                     ${{ steps.get_version.outputs.NAME }}
