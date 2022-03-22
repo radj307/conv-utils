@@ -56,11 +56,6 @@ jobs:
       fail-fast:    true
 
     steps:
-      # Configure the environment
-    - name: Configure Environment
-      if:   ${{ env.BINARY_NAME == '' }}
-      run:  echo "BINARY_NAME=$PROJECT_NAME" >> $GITHUB_ENV
-    
       # Check out the repository
     - uses: actions/checkout@v2
       with:
@@ -101,14 +96,14 @@ jobs:
       if:     ${{ runner.os == 'Windows' }}
       run:    |
               cd "${{github.workspace}}/build/${{env.PROJECT_NAME}}"
-              Compress-Archive "$BINARY_NAME.exe" "${{env.PROJECT_NAME}}-$(.\${{env.PROJECT_NAME}} -vq)-Windows.zip"
+              Compress-Archive "${{env.BINARY_NAME || env.PROJECT_NAME}}.exe" "${{env.PROJECT_NAME}}-$(.\${{env.PROJECT_NAME}} -vq)-Windows.zip"
       shell:  powershell
       # Linux / macOS
     - name:   Create Archive (Linux/macOS)
       if:     ${{ runner.os != 'Windows' }}
       run:    |
               cd "${{github.workspace}}/build/${{env.PROJECT_NAME}}"
-              zip -T9 "${{env.PROJECT_NAME}}-$(./${{env.PROJECT_NAME}} -vq)-${{runner.os}}.zip" "${{env.BINARY_NAME}}"
+              zip -T9 "${{env.PROJECT_NAME}}-$(./${{env.PROJECT_NAME}} -vq)-${{runner.os}}.zip" "${{env.BINARY_NAME || env.PROJECT_NAME}}"
       shell:  bash
       
     # Upload Artifact
