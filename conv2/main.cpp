@@ -165,6 +165,7 @@ public:
 					<< '\n'
 					<< "MODIFIERS:\n"
 					<< "  -R  --rad               Use radians instead of degrees for input and output values." << '\n'
+					<< "  -r  --round             Rounds the resulting output to the nearest integer." << '\n'
 					<< '\n'
 					<< "USAGE:\n"
 					<< "  conv2 <-F|--FOV> <<AspectHorizontal>:<AspectVertical>> <<INPUT>[H|V] ...>" << '\n'
@@ -285,6 +286,25 @@ struct StreamFormatter {
 
 int main(const int argc, char** argv)
 {
+
+	if (str::stob("true")) {
+		std::cout << "Successful\n";
+	}
+	if (!str::stob("false")) {
+		std::cout << "Successful\n";
+	}
+
+	if (str::stob("          true")) {
+		std::cout << "Successful\n";
+	}
+	if (str::stob("\ttrue asdf")) {
+		std::cout << "Successful\n";
+	}
+
+
+	return 0;
+
+
 	enum class OUTCOLOR : unsigned char {
 		NONE,
 		INPUT,
@@ -417,7 +437,7 @@ int main(const int argc, char** argv)
 			int outBase{ 10 };
 
 			const auto& calculate{ [&in, &outBase]() {
-				
+
 			} };
 
 			for (auto it{ parameters.begin() }; it != parameters.end(); ++it) {
@@ -548,7 +568,7 @@ int main(const int argc, char** argv)
 		// FOV
 		else if (checkarg('F', "FOV", true)) {
 			const auto& fov{ args.typegetv_any<opt::Flag, opt::Option>('F', "FOV") };
-			const bool& radians{ checkarg('R', "rad") };
+			const bool& radians{ checkarg('R', "rad") }, & round{ checkarg('r', "round") };
 
 			if (!fov.has_value())
 				throw make_exception("Detected mode: FOV\n", indent(10), "No aspect ratio was specified!");
@@ -570,21 +590,21 @@ int main(const int argc, char** argv)
 
 				FOV::value const& in{ str::stold(it) };
 
-				FOV::value out{ 0.0 };
+				FOV::value out{ 0.0L };
 
 				if (radians) {
 					if (vertical)
 						out = FOV::toHorizontalR(in, aspect);
 					else
 						out = FOV::toVerticalR(in, aspect);
-					buffer << color(OUTCOLOR::OUTPUT) << out << color() << " rad" << ' ' << (vertical ? 'H' : 'V') << '\n';
+					buffer << color(OUTCOLOR::OUTPUT) << (round ? std::round(out) : out) << color() << " rad" << ' ' << (vertical ? 'H' : 'V') << '\n';
 				}
 				else {
 					if (vertical)
 						out = FOV::toHorizontal(in, aspect);
 					else
 						out = FOV::toVertical(in, aspect);
-					buffer << color(OUTCOLOR::OUTPUT) << out << color() << ' ' << (vertical ? 'H' : 'V') << '\n';
+					buffer << color(OUTCOLOR::OUTPUT) << (round ? std::round(out) : out) << color() << ' ' << (vertical ? 'H' : 'V') << '\n';
 				}
 			}
 		}
