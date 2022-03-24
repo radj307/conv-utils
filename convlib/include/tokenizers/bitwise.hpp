@@ -225,6 +225,20 @@ namespace bitwise {
 		return os << static_cast<unsigned char>(operation);
 	}
 
+	inline long long calculateOperation(long long const& left, OperationType const& operation, long long const& right)
+	{
+		switch (operation) {
+		case OperationType::AND:
+			return (left & right);
+		case OperationType::OR:
+			return (left | right);
+		case OperationType::XOR:
+			return (left ^ right);
+		case OperationType::NONE: [[fallthrough]];
+		default:
+			throw make_exception("bitwise::calculateOperation() failed:  Received invalid operation type!");
+		}
+	}
 	inline long long calculateOperation(Operand const& left, OperationType const& operation, Operand const& right)
 	{
 		switch (operation) {
@@ -240,6 +254,11 @@ namespace bitwise {
 		}
 	}
 	inline long long calculateOperation(std::tuple<Operand, OperationType, Operand> const& tpl)
+	{
+		const auto& [l, op, r] {tpl};
+		return calculateOperation(l, op, r);
+	}
+	inline long long calculateOperation(std::tuple<long long, OperationType, long long> const& tpl)
 	{
 		const auto& [l, op, r] {tpl};
 		return calculateOperation(l, op, r);
@@ -342,6 +361,38 @@ namespace bitwise {
 		}
 	};
 
+
+
+	struct operand_base {
+		virtual ~operand_base() = default;
+
+		virtual long long result() const = 0;
+	};
+
+	struct operation : operand_base {
+		using type = std::tuple<long long, OperationType, long long>;
+		type _operation;
+
+		virtual long long result() const override
+		{
+			return calculateOperation(_operation);
+		}
+	};
+
+	struct step : operand_base {
+		using type = std::unique_ptr<operand_base>;
+		type _step;
+
+		virtual long long result() const override
+		{
+			if (auto* ptr{ _step.get() }; ptr == nullptr)
+				throw make_exception("step::result() failed:  Step is null!");
+			else return ptr->result();
+		}
+	};
+
+
+
 	struct Operation {
 		enum class Type : unsigned char {
 			NONE,
@@ -412,6 +463,251 @@ namespace bitwise {
 			default:
 				throw make_exception("Operation doesn't have a valid type!");
 			}
+		}
+	};
+}
+
+namespace bitwise2 {
+	enum class Operator : char {
+		NONE = '\0',
+		AND = '&',
+		OR = '|',
+		XOR = '^',
+		NEGATE = '~',
+	};
+	inline std::ostream& operator<<(std::ostream& os, const Operator& op)
+	{
+		return os << static_cast<char>(op);
+	}
+
+	using operand = long long;
+
+	namespace exceptions {
+		struct invalid_operation_except : ex::except {
+			Operator op;
+			int expected, actual;
+			std::string message;
+
+			invalid_operation_except(const Operator& op, const int& expected_operand_count, const int& actual_operand_count) : op{ op }, expected{ expected_operand_count }, actual{ actual_operand_count } {}
+			invalid_operation_except(const Operator& op, const int& expected_operand_count, const std::string& error) : op{ op }, expected{ expected_operand_count }, actual{ 0 }, message{ error } {}
+			virtual void format() const noexcept override
+			{
+				auto& msg{ *get_message() };
+				msg += str::stringify("Operator ", op, " requires ", expected, " operand", (expected > 1 ? "s" : ""), ", but ");
+				if (actual == 0)
+					msg += message;
+				else
+					msg += str::stringify(actual, ' ', (actual != 1 ? "were" : "was"), " given!");
+			}
+		};
+	}
+
+	struct operation {
+		using suboperation = std::unique_ptr<operation>;
+		using variant_t = std::variant<std::monostate, suboperation, operand>;
+
+		Operator type{ Operator::NONE };
+		variant_t left, right;
+
+		operation() = default;
+
+		operation(const Operator& type, variant_t&& left, variant_t&& right) : type{ type }, left{ std::move(left) }, right{ std::move(right) }
+		{
+			if (type == Operator::NONE || type == Operator::NEGATE)
+				throw make_custom_exception<exceptions::invalid_operation_except>(type, 1, 2);
+
+			if (const bool leftNull{ !hasv(left) }, rightNull{ !hasv(right) }; leftNull && rightNull)
+				throw make_custom_exception<exceptions::invalid_operation_except>(type, 2, "both were null!");
+			else if (rightNull)
+				throw make_custom_exception<exceptions::invalid_operation_except>(type, 2, "the right operand was null!");
+			else if (leftNull)
+				throw make_custom_exception<exceptions::invalid_operation_except>(type, 2, "the left operand was null!");
+		}
+		operation(variant_t&& left, const Operator& type, variant_t&& right) : operation(type, std::move(left), std::move(right)) {}
+
+		operation(const Operator& type, variant_t&& value) : type{ type }, left{ std::move(value) }, right{ std::monostate{} }
+		{
+			if (type != Operator::NONE && type != Operator::NEGATE)
+				throw make_custom_exception<exceptions::invalid_operation_except>(type, 2, 1);
+			if (!hasv(left))
+				throw make_custom_exception<exceptions::invalid_operation_except>(type, 1, "the left operand was null!");
+			if (hasv(right))
+				throw make_custom_exception<exceptions::invalid_operation_except>(type, 1, 2);
+		}
+		operation(variant_t&& value, const Operator& type) : operation(type, std::move(value)) {}
+
+		/**
+		 * @brief		Check if the given variant type contains an operand or operation.
+		 *\n			If the given variant is std::monostate (null), an exception is *not* thrown.
+		 * @param v		Input variant type.
+		 * @returns		bool
+		 *				true:	The given variant is an operand or operation type.
+		 *				false:	The given variant is std::monostate.
+		 */
+		static constexpr bool hasv(const variant_t& v) noexcept
+		{
+			return v.index() != 0;
+		}
+		/**
+		 * @brief				Get the resulting numerical value from the given variant type. If the given variant is std::monostate, an exception is thrown.
+		 *\n					If the given variant is an operand type, the operand's value is returned.
+		 *\n					If the given variant is an operation type, the result of the operation is returned by calling operation::result().
+		 * @param v				Input variant type.
+		 * @returns				operand
+		 * @throws ex::except	Variant type was set to std::monostate
+		 */
+		static operand get(const variant_t& v) noexcept(false)
+		{
+			if (auto* value = std::get_if<operand>(&v))
+				return *value;
+			else if (auto* oper = std::get_if<suboperation>(&v)) {
+				auto* oper_ptr{ oper->get() };
+				if (oper_ptr == nullptr)
+					throw make_exception("operation::get() failed:  Operation pointer was null!");
+				return oper_ptr->result();
+			}
+			throw make_exception("operation::get() failed:  Received null variant type!");
+		}
+
+		virtual operand result() const
+		{
+			if (!hasv(left))
+				throw make_exception("operation::result() failed:  Left operand is null!");
+			operand l{ get(left) };
+
+			switch (type) {
+			case Operator::AND: {
+				if (!hasv(right))
+					throw make_exception("operation::result() failed:  Cannot perform ", type, " operation when right operand is null!");
+				return (l & get(right));
+			}
+			case Operator::OR: {
+				if (!hasv(right))
+					throw make_exception("operation::result() failed:  Cannot perform ", type, " operation when right operand is null!");
+				return (l | get(right));
+			}
+			case Operator::XOR: {
+				if (!hasv(right))
+					throw make_exception("operation::result() failed:  Cannot perform ", type, " operation when right operand is null!");
+				return (l ^ get(right));
+			}
+			case Operator::NEGATE:
+				if (hasv(right))
+					throw make_exception("operation::result() failed:  Cannot perform ", type, " operation when right operand is not null!");
+				return ~l;
+			case Operator::NONE:
+				if (hasv(right))
+					throw make_exception("operation::result() failed:  Cannot perform ", type, " operation when right operand is not null!");
+				return l;
+			default:break;
+			}
+			throw make_exception("operation::result() failed:  Invalid operator ", type);
+		}
+	};
+
+	using bitwise::Token;
+	using bitwise::TokenType;
+	using bitwise::Tokenizer;
+
+	class Parser : token::base::TokenParserBase<operation, Token> {
+	public:
+		Parser(std::vector<TokenT>&& tokens) : TokenParserBase<operation, Token>(std::move(tokens)) {}
+		Parser(std::stringstream&& ss) : TokenParserBase<operation, Token>(std::move(Tokenizer(std::move(ss)).tokenize())) {}
+
+		OutputT parse() const
+		{
+			using std::optional;
+			optional<operation::variant_t> l, r;
+			optional<Operator> type;
+			bool negateNext{ false };
+
+			const auto& push{ [&](auto&& v) {
+				if (!l.has_value())
+					l = std::move(v);
+				else if (!r.has_value())
+					r = std::move(v);
+				else throw make_exception("bitwise2::Parser::parse() failed:  Too many operands!");
+			} };
+
+			bool doBreak{ false };
+			for (auto it{ tokens.begin() }; !doBreak && it != tokens.end(); ++it) {
+				switch (it->type) {
+				case TokenType::END:
+					doBreak = true;
+					break;
+				case TokenType::NEGATE:
+					negateNext = !negateNext;
+					break;
+				case TokenType::AND:
+					if (type.has_value())
+						throw make_exception("Too many operators!");
+					else if (negateNext)
+						throw make_exception("Cannot negate an operator!");
+					type = Operator::AND;
+					break;
+				case TokenType::OR:
+					if (type.has_value())
+						throw make_exception("Too many operators!");
+					else if (negateNext)
+						throw make_exception("Cannot negate an operator!");
+					type = Operator::OR;
+					break;
+				case TokenType::XOR:
+					if (type.has_value())
+						throw make_exception("Too many operators!");
+					else if (negateNext)
+						throw make_exception("Cannot negate an operator!");
+					type = Operator::XOR;
+					break;
+				case TokenType::BINARY: {
+					operand value{ std::move(str::toBase10(it->str, 2)) };
+					if (negateNext) {
+						push(std::move(std::make_unique<operation>(Operator::NEGATE, std::move(value))));
+						negateNext = false;
+					}
+					else push(value);
+					break;
+				}
+				case TokenType::HEXADECIMAL: {
+					operand value{ std::move(str::toBase10(it->str, 16)) };
+					if (negateNext) {
+						push(std::move(std::make_unique<operation>(Operator::NEGATE, std::move(value))));
+						negateNext = false;
+					}
+					else push(value);
+					break;
+				}
+				case TokenType::DECIMAL: {
+					operand value{ std::move(str::stoll(it->str)) };
+					if (negateNext) {
+						push(std::move(std::make_unique<operation>(Operator::NEGATE, std::move(value))));
+						negateNext = false;
+					}
+					else push(std::move(value));
+					break;
+				}
+				case TokenType::ENCLOSED: {
+					std::unique_ptr<operation> oper{ std::make_unique<operation>(std::move(Parser(std::move(Tokenizer(std::move(std::stringstream{ it->str })).tokenize())).parse())) };
+					if (negateNext) {
+						push(std::make_unique<operation>(Operator::NEGATE, std::move(oper)));
+						negateNext = false;
+					}
+					else push(std::move(oper));
+					break;
+				}
+				case TokenType::NONE:
+					break;
+				default:
+					throw make_exception("Unrecognized token type: \"", typeid(it->type).name(), "!");
+				}
+			}
+
+			if (!type.has_value())
+				throw make_exception("bitwise2::Parser::parse() failed:  No operator specified!");
+			else if ((type.value() != Operator::NEGATE && !l.has_value() && !r.has_value()) || (type.value() == Operator::NEGATE && (!l.has_value() || r.has_value())))
+				throw make_exception("bitwise2::Parser::parse() failed:  Incorrect number of operands for operation type '", type.value(), "'!");
+
+			return std::move(operation{ type.value(), std::move(l.value()), std::move(r.value()) });
 		}
 	};
 }
