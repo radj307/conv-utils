@@ -227,6 +227,8 @@ public:
 #include <FOV.hpp>		// FOV
 #include <tokenizers/bitwise.hpp>	// BITWISE
 
+#include "operators.hpp"
+
 /**
  * @struct	StreamFormatter
  * @brief	Handles output stream formatting arguments.
@@ -286,19 +288,8 @@ struct StreamFormatter {
 
 int main(const int argc, char** argv)
 {
-	enum class OUTCOLOR : unsigned char {
-		NONE,
-		INPUT,
-		OUTPUT,
-		OPERATOR,
-		HIGHLIGHT,
-	};
-	term::palette<OUTCOLOR> color{
-		std::make_pair(OUTCOLOR::NONE, color::white),
-		std::make_pair(OUTCOLOR::INPUT, color::yellow),
-		std::make_pair(OUTCOLOR::OUTPUT, color::yellow),
-		std::make_pair(OUTCOLOR::OPERATOR, color::white),
-	};
+	using conv2::OUTCOLOR;
+	using conv2::color;
 
 	// use a buffer to prevent changes to standard output
 	std::stringstream buffer;
