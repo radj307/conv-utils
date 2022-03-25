@@ -28,7 +28,6 @@ public:
 				<< "                           more detailed usage information about it. Mode names are case sensitive." << '\n'
 				<< "  -v  --version           Show the current version number, then exit." << '\n'
 				<< "  -q  --quiet             Only show minimal output." << '\n'
-				<< "  -Q  --extra-quiet       Only show numerical values. Useful for shell pipe operations." << '\n'
 				<< "  -g  --group             Use number grouping for large numbers. (Ex. 1,000,000)" << '\n'
 				<< "  -n  --no-color          Disable the usage of colorized output." << '\n'
 				<< "      --showbase          Force-show bases for numbers." << '\n'
@@ -182,33 +181,34 @@ public:
 					<< "  -b  --bitwise           Perform bitwise calculations on binary, decimal, and/or hexadecimal numbers." << '\n'
 					<< '\n'
 					<< "MODIFIERS:\n"
-					<< "  -B  --binary            Print the output value(s) in binary instead of decimal." << '\n'
-					<< "  -O  --octal             Print the output value(s) in octal instead of decimal." << '\n'
-					<< "  -x  --hex               Print the output value(s) in hexadecimal instead of decimal." << '\n'
+					<< "      --binary            Print output values in binary (base-2) instead of decimal." << '\n'
+					<< "  -O  --octal             Print numbers in octal (base-8) instead of decimal." << '\n'
+					<< "  -x  --hex               Print numbers in hexadecimal (base-16) instead of decimal." << '\n'
 					<< '\n'
 					<< "USAGE:\n"
-					<< "  conv2 <-b|--bitwise> [MODIFIER] < <[~]<INPUT> <OPERATOR> [~]<INPUT>> ... >" << '\n'
+					<< "  conv2 <-b|--bitwise> [MODIFIER] '<NUMBER> <OPERATOR> <NUMBER>'" << '\n'
 					<< '\n'
 					<< "  Any uncaptured commandline parameters are used as input." << '\n'
+					<< "  Note that bitwise expressions must be delimited with a comma (,) or semicolon (;) when using multiple" << '\n'
+					<< "   expressions in the same command." << '\n'
+					<< "  Nesting operations is fully supported, you can use parenthesis '()' to control order-of-operations." << '\n'
 					<< '\n'
 					<< "BITWISE SYNTAX:\n"
+					<< "  Most operations are composed of two input values (operands) and an operator. The only exception to this rule is" << '\n'
+					<< "   the 'NOT'/'~' operator, which requires only one operand." << '\n'
 					<< "  Each expression is composed of an operator, and two input values; Input values are assumed to be represented" << '\n'
-					<< "   in base-10 (decimal), unless prefixed with \"0b\" for base-2 (binary), or \"0x\" for base-16 (hexadecimal)." << '\n'
+					<< "   in base-10 (decimal), unless prefixed with '0b' for base-2 (binary), or '0x' for base-16 (hexadecimal)." << '\n'
 					<< "  Example of the base-10 representation of `60` in binary and hex, using their respective prefixes:" << '\n'
 					<< '\n'
 					<< "       `0b111100`" << '\n'
 					<< "       `0x3C`" << '\n'
 					<< '\n'
-					<< "  The operation may be specified with the literal operator name ( 'AND', 'OR', 'XOR', 'NOT' ) or the" << '\n'
-					<< "   standard symbols ( | ^ & ~ ), the latter of which must be escaped when used directly in the shell." << '\n'
-					<< "   This behavior is designed to support piped input from the shell, for example by using the `cat`" << '\n'
+					<< "  The operator may be specified using literal operator names ( 'AND', 'OR', 'XOR', 'NOT' ), or the" << '\n'
+					<< "   standard symbols ( | ^ & ~ ). Most symbols must be escaped when used directly in the shell." << '\n'
+					<< "  This behavior is designed to support shell pipe operators, for example by using the `cat`" << '\n'
 					<< "   or `echo` commands in combination with the '|' pipe operator like so:" << '\n'
 					<< '\n'
-					<< "       `cat \"file\" | conv2 -Qbx`" << '\n'
-					<< '\n'
-					<< "  You can control the order-of-operations by using brackets/parenthesis '()'." << '\n'
-					<< "  Note that input expressions within brackets are printed as the resulting value in base 10 (decimal)," << '\n'
-					<< "   regardless of any specified modifiers. This is only relevant if the quiet flag is not specified." << '\n'
+					<< "       `cat \"file\" | conv2 -bx`" << '\n'
 					;
 			}
 			else throw make_exception("Unrecognized help subject: \"", h._param, "\"!");
@@ -225,7 +225,7 @@ public:
 #include <ascii.hpp>	// ASCII
 #include <radians.hpp>	// RADIANS
 #include <FOV.hpp>		// FOV
-#include <tokenizers/bitwise.hpp>	// BITWISE
+#include <bitwise.hpp>	// BITWISE
 
 #include "operators.hpp"
 
@@ -322,8 +322,7 @@ int main(const int argc, char** argv)
 
 		// handle blocking arguments
 		color.setActive(!checkarg('n', "no-color"));
-		bool extraQuiet{ checkarg('Q', "extra-quiet") };
-		bool quiet{ extraQuiet || checkarg('q', "quiet") };
+		bool quiet{ checkarg('q', "quiet") };
 		bool numGrouping{ checkarg('g', "group") };
 
 		// [-h|--help]
@@ -582,34 +581,52 @@ int main(const int argc, char** argv)
 		}
 		// BITWISE
 		else if (checkarg('b', "bitwise")) {
-			for (const auto& it : bitwise::Parser{ std::move(bitwise::Tokenizer{ std::move(parameters) }.tokenize()) }.parse()) {
-				const auto& [left, operation, right] { it };
-				if (!quiet) {
-					using bitwise::operator<<;
-					buffer << color(OUTCOLOR::INPUT) << left << color() << ' ' << color(OUTCOLOR::OPERATOR) << operation << color() << ' ' << color(OUTCOLOR::INPUT) << right << color() << ' ' << color(OUTCOLOR::OPERATOR) << '=' << color() << ' ';
+			
+			bool binary{ false }; // no fmtflag for binary
+			std::ios_base& (*fmtFunction)(std::ios_base&) = &std::dec;
+			if (checkarg('O', "octal"))
+				fmtFunction = &std::oct;
+			else if (checkarg('x', "hex"))
+				fmtFunction = &std::hex;
+			else if (checkarg('B', "binary"))
+				binary = true;
+
+			//using regex = std::basic_regex<char>;
+			//std::regex_constants::syntax_option_type regex_cfg{ std::regex_constants::optimize };
+			//std::regex_constants::match_flag_type match_cfg{ std::regex_constants::match_any };
+			//regex valid_operand{ "\\b(?:0x[a-fA-F]+)|(?:\\\\[0-7]+)|(?:0b[01]+)|(?:[0-9]+)\\b", regex_cfg };
+			//regex valid_operator{ "[&|^~]|(?:\\b[aA][nN][dD]\\b)|(?:\\b[oO][rR]\\b)|(?:\\b[xX][oO][rR]\\b)|(?:\\b[nN][oO][tT]\\b)", regex_cfg };
+
+			for (const auto& expr : [/*&valid_operand, &valid_operator, &match_cfg*/](auto&& params) {
+				std::vector<std::string> vec;
+				vec.reserve(params.size());
+				std::string buf;
+				buf.reserve(64ull);
+				for (auto it{ params.begin() }; it != params.end(); ++it) {
+					if (str::endsWithAny(*it, ',', ';')) {
+						vec.emplace_back(buf + it->substr(0ull, it->size() - 2ull));
+						buf.clear();
+					}
+					else if (std::distance(it, params.end()) == 1) {
+						vec.emplace_back(buf + *it);
+						buf.clear();
+					}
+					//else if (const bool has_operator{ std::regex_match(*it, valid_operator, match_cfg) }, has_operand{ std::regex_match(*it, valid_operand, match_cfg) }; has_operator && has_operand) { // whole expression
+					//	vec.emplace_back(*it);
+					//}
+					else buf += *it;
 				}
-				// print output
-				long long result{ bitwise::calculateOperation(it) };
+				vec.shrink_to_fit();
+				return vec;
+			}(parameters)) {
+				bitwise::operation oper{ bitwise::parse(expr) };
+				if (!quiet)
+					buffer << oper << ' ' << color(OUTCOLOR::OPERATOR) << '=' << color() << ' ';
 				buffer << color(OUTCOLOR::OUTPUT);
-				int base{ 10 };
-				switch ([&checkarg]() -> unsigned char {
-					if (checkarg('B', "binary")) return 2;
-					else if (checkarg('O', "octal")) return 8;
-					else if (checkarg('x', "hex")) return 16;
-					else return 10;
-				}()) {
-				case 2:
-					base = 2;
-				case 8:
-					base = 8;
-				case 16:
-					base = 16;
-					buffer << str::fromBase10(result, base);
-					break;
-				case 10:
-					buffer << result;
-					break;
-				}
+				if (binary)
+					buffer << str::fromBase10(oper.result(), 2);
+				else
+					buffer << fmtFunction << oper.result();
 				buffer << color() << '\n';
 			}
 		}
