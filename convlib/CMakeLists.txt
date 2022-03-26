@@ -1,18 +1,15 @@
 # convutils/convlib
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.20)
 
 if (MSVC)
 	set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 endif()
 
-# Create project
-project(convlib VERSION ${CONV_VERSION} LANGUAGES CXX)
-
 # Get library headers & source files
 file(GLOB HEADERS
 	RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
 	CONFIGURE_DEPENDS
-	"include/*.h"
+	"include/*.h*"
 )
 file(GLOB SRCS 
 	RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
@@ -21,13 +18,14 @@ file(GLOB SRCS
 )
 
 # Create static library
-add_library(convlib STATIC ${SRCS})
+add_library(convlib STATIC "${SRCS}")
 
 # Set library properties
 set_property(TARGET convlib PROPERTY CXX_STANDARD 20)
 set_property(TARGET convlib PROPERTY CXX_STANDARD_REQUIRED ON)
+set_property(TARGET convlib PROPERTY POSITION_INDEPENDENT_CODE ON)
 if (MSVC)
-	target_compile_options(convlib PUBLIC "/Zc:__cplusplus")
+	target_compile_options(convlib PUBLIC "/Zc:__cplusplus" "/Zc:preprocessor")
 endif()
 
 # Include library headers

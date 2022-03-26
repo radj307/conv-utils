@@ -17,7 +17,7 @@ public:
 	friend std::ostream& operator<<(std::ostream& os, const PrintHelp& h)
 	{
 		if (h._param.empty()) {// unscoped help
-			os << "conv2  " << CONV2_VERSION << '\n'
+			os << "conv2  " << CONV2_VERSION_EXTENDED << '\n'
 				<< "  A commandline conversion utility.\n"
 				<< '\n'
 				<< "USAGE:\n"
