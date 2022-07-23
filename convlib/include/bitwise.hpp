@@ -405,40 +405,14 @@ namespace bitwise {
 
 		OutputT parse() const
 		{
+			// create a buffer for values
 			using std::optional;
 			optional<operation::variant_t> l, r;
 			optional<Operator> type;
 			bool negateNext{ false };
 
-			//const auto& validate{ [&]() {
-			//	if (type.has_value() && !negateNext) {
-			//		const auto& typev{ type.value() };
-			//		if (typev == Operator::NEGATE || typev == Operator::NONE)
-			//			return l.has_value() && !r.has_value();
-			//		else return l.has_value() && r.has_value();
-			//	}
-			//	return false;
-			//} };
-
-			/*const auto& compact{ [&]() {
-				if (type.has_value() && l.has_value()) {
-					const auto& typev{ type.value() };
-					switch (typev) {
-					case Operator::NONE: [[fallthrough]];
-					case Operator::NEGATE:
-						break;
-					default: {
-						if (r.has_value()) {
-							l = std::move(std::make_unique<operation>(typev, std::move(std::make_unique<operation::variant_t>(l.value())), std::move(std::make_unique<operation::variant_t>(r.value()))));
-						}
-						else break;
-					}
-					}
-				}
-				throw make_exception("Cannot create operation without at least one operand and an operator!");
-			} };*/
-
 			const auto& push{ [&](auto&& v) {
+				// first check if there is a full operation present in the buffer
 				if (l.has_value() && r.has_value() && type.has_value()) {
 					l = std::move(std::make_unique<operation>(type.value(), std::move(l.value()), std::move(r.value())));
 					r = std::nullopt;
@@ -545,7 +519,15 @@ namespace bitwise {
 	 */
 	inline operation parse(auto&& input)
 	{
-		return std::move(Parser(std::forward<decltype(input)>(input)).parse());
+		try {
+			return std::move(Parser(std::forward<decltype(input)>(input)).parse());
+		} catch (const ex::except& ex) {
+			throw make_exception(
+				"An exception occurred while parsing a bitwise expression!\n",
+				indent(10), "Expression:  '", std::forward<decltype(input)>(input), "'\n",
+				indent(10), "Exception:   '", ex.what(), '\''
+			);
+		}
 	}
 }
 
