@@ -64,7 +64,7 @@ namespace base {
 
 #	pragma endregion BaseEnum
 
-	inline Base detectBase(const std::string& s, const Base& allowBases = Base::BINARY | Base::OCTAL | Base::DECIMAL | Base::HEXADECIMAL)
+	inline WINCONSTEXPR Base detectBase(const std::string& s, const Base& allowBases = Base::BINARY | Base::OCTAL | Base::DECIMAL | Base::HEXADECIMAL)
 	{
 		const auto& allow{ [&allowBases](const Base& base) {
 			return (base & allowBases) != Base::ZERO;

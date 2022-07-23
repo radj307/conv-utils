@@ -24,12 +24,12 @@ public:
 				<< "  conv2 <MODE> [MODIFIERS] [OPTIONS] <<INPUT>...>\n"
 				<< '\n'
 				<< "OPTIONS:\n"
-				<< "  -h  --help [MODE]       Show this help display, then exit. Optionally, you can include the name of a mode to show" << '\n'
+				<< "  -h, --help [MODE]       Show this help display, then exit. Optionally, you can include the name of a mode to show" << '\n'
 				<< "                           more detailed usage information about it. Mode names are case sensitive." << '\n'
-				<< "  -v  --version           Show the current version number, then exit." << '\n'
-				<< "  -q  --quiet             Only show minimal output." << '\n'
-				<< "  -g  --group             Use number grouping for large numbers. (Ex. 1,000,000)" << '\n'
-				<< "  -n  --no-color          Disable the usage of colorized output." << '\n'
+				<< "  -v, --version           Show the current version number, then exit." << '\n'
+				<< "  -q, --quiet             Only show minimal output." << '\n'
+				<< "  -g, --group             Use number grouping for large numbers. (Ex. 1,000,000)" << '\n'
+				<< "  -n, --no-color          Disable the usage of colorized output." << '\n'
 				<< "      --showbase          Force-show bases for numbers." << '\n'
 				<< "      --precision <#>     Specify the number of digits after the decimal point to show." << '\n'
 				<< "      --fixed             Force standard notation." << '\n'
@@ -37,15 +37,16 @@ public:
 				<< "      --hexfloat          Force floating-point numbers to use hexadecimal." << '\n'
 				<< '\n'
 				<< "MODES:\n"
-				<< "  -d  --data              Data Size Conversions. (B, kB, MB, GB, etc.)" << '\n'
-				<< "  -x  --hex               Hexadecimal <=> Decimal Conversions." << '\n'
-				<< "  -B  --base              Number representation base conversions. (Binary, Octal, Decimal, Hexadecimal)" << '\n'
-				<< "  -m  --mod               Modulo Calculator." << '\n'
-				<< "  -l  --len               Length Unit Conversions. (meters, feet, etc.)" << '\n'
-				<< "  -a  --ascii             ASCII Table Lookup Tool. Converts all characters to their ASCII values." << '\n'
-				<< "  -R  --rad               Degrees <=> Radians Converter." << '\n'
-				<< "  -F  --FOV <H:V>         Horizontal <=> Vertical Field of View Converter. Requires an aspect ratio, ex: \"16:9\"." << '\n'
-				<< "  -b  --bitwise           Perform bitwise calculations on binary, decimal, and/or hexadecimal numbers." << '\n'
+				<< "  -d, --data              Data Size Conversions. (B, kB, MB, GB, etc.)" << '\n'
+				<< "  -x, --hex               Hexadecimal <=> Decimal Conversions." << '\n'
+				<< "  -B, --base              Number representation base conversions. (Binary, Octal, Decimal, Hexadecimal)" << '\n'
+				<< "  -m, --mod               Modulo Calculator." << '\n'
+				<< "  -l, --len               Length Unit Conversions. (meters, feet, etc.)" << '\n'
+				<< "  -a, --ascii             ASCII Table Lookup Tool. Converts all characters to their ASCII values." << '\n'
+				<< "  -R, --rad               Degrees <=> Radians Converter." << '\n'
+				<< "  -F, --FOV <H:V>         Horizontal <=> Vertical Field of View Converter. Requires an aspect ratio, ex: \"16:9\"." << '\n'
+				<< "  -b, --bitwise           Perform bitwise calculations on binary, decimal, and/or hexadecimal numbers." << '\n'
+				<< "  -e, --exp, --pow        Exponent Calculator.  Use a comma ',' (shell) or semicolon ';' (string) between expressions." << '\n'
 				;
 		}
 		else { // scoped help
@@ -211,6 +212,24 @@ public:
 					<< "       `cat \"file\" | conv2 -bx`" << '\n'
 					;
 			}
+			else if (str::equalsAny(subject, "e", "exp", "pow")) {
+				buffer
+					<< "  -e, --exp, --pow        Exponent Calculator." << '\n'
+					<< '\n'
+					<< "USAGE:\n"
+					<< "  Any uncaptured commandline parameters are used as input." << '\n'
+					<< "  Note that each successive expression must be seperated from the previous expression with a comma (,) when used" << '\n'
+					<< "   directly from the shell, or a semicolon (;) when enclosed by quotes (in most shells)." << '\n'
+					<< "  Nesting operations is fully supported, you can use parenthesis '()' to control order-of-operations." << '\n'
+					<< '\n'
+					<< "EXPONENT SYNTAX:\n"
+					<< "  Use a caret symbol (^) to seperate the exponent from the variable." << '\n'
+					<< "  Seperate multiple expressions with a comma (,) or semicolon (;)." << '\n'
+					<< "  To calculate the expression '5 to the power of 25 to the power of 2.', you would use:"
+					<< '\n'
+					<< "    5 ^ (25 ^ 2)" << '\n'
+					;
+			}
 			else throw make_exception("Unrecognized help subject: \"", h._param, "\"!");
 			os << buffer.rdbuf();
 		}
@@ -218,14 +237,16 @@ public:
 	}
 };
 
-#include <data.hpp>		// DATA
-#include <base.hpp>		// HEX
-#include <modulo.hpp>	// MODULO
-#include <length.hpp>	// LENGTH
-#include <ascii.hpp>	// ASCII
-#include <radians.hpp>	// RADIANS
-#include <FOV.hpp>		// FOV
-#include <bitwise.hpp>	// BITWISE
+#include <data.hpp>			// DATA
+#include <base.hpp>			// HEX
+#include <modulo.hpp>		// MODULO
+#include <length.hpp>		// LENGTH
+#include <ascii.hpp>		// ASCII
+#include <radians.hpp>		// RADIANS
+#include <FOV.hpp>			// FOV
+#include <bitwise.hpp>		// BITWISE
+#include <arithmetic.hpp>	// ARITHMETIC
+#include <exponents.hpp>	// POW / EXP
 
 #include "operators.hpp"
 
@@ -286,6 +307,22 @@ struct StreamFormatter {
 	}
 };
 
+/**
+ * @struct	argument_exception
+ * @brief	Exception type that appends the default help display to the exception message before returning.
+ */
+struct argument_exception : public ex::except {
+	using ex::except::except;
+	virtual void format() const noexcept override
+	{
+		std::string help{ str::stringify('\n', std::move(PrintHelp())) };
+
+		auto* msg{ get_message() }; // allocate more memory & append help:
+		msg->reserve(msg->size() + 1ull + help.size());
+		msg->append(help.c_str());
+	}
+};
+
 int main(const int argc, char** argv)
 {
 	using conv2::OUTCOLOR;
@@ -326,10 +363,8 @@ int main(const int argc, char** argv)
 		bool numGrouping{ checkarg('g', "group") };
 
 		// [-h|--help]
-		if (args.empty() || checkarg('h', "help")) {
-			std::cout << PrintHelp(args.typegetv_any<opt::Flag, opt::Option>('h', "help"));
-			return 0;
-		}
+		if (args.empty() || checkarg('h', "help"))
+			throw make_custom_exception<argument_exception>("No arguments were specified!");
 		// [-v|--version]
 		else if (checkarg('v', "version")) {
 			std::cout << (quiet ? "" : "conv2  v") << CONV2_VERSION << std::endl;
@@ -580,8 +615,8 @@ int main(const int argc, char** argv)
 			}
 		}
 		// BITWISE
-		else if (checkarg('b', "bitwise")) {
-			
+		else if (checkarg('b', "bitwise", true)) {
+
 			bool binary{ false }; // no fmtflag for binary
 			std::ios_base& (*fmtFunction)(std::ios_base&) = &std::dec;
 			if (checkarg('O', "octal"))
@@ -591,31 +626,25 @@ int main(const int argc, char** argv)
 			else if (checkarg('B', "binary"))
 				binary = true;
 
-			//using regex = std::basic_regex<char>;
-			//std::regex_constants::syntax_option_type regex_cfg{ std::regex_constants::optimize };
-			//std::regex_constants::match_flag_type match_cfg{ std::regex_constants::match_any };
-			//regex valid_operand{ "\\b(?:0x[a-fA-F]+)|(?:\\\\[0-7]+)|(?:0b[01]+)|(?:[0-9]+)\\b", regex_cfg };
-			//regex valid_operator{ "[&|^~]|(?:\\b[aA][nN][dD]\\b)|(?:\\b[oO][rR]\\b)|(?:\\b[xX][oO][rR]\\b)|(?:\\b[nN][oO][tT]\\b)", regex_cfg };
-
 			for (const auto& expr : [/*&valid_operand, &valid_operator, &match_cfg*/](auto&& params) {
 				std::vector<std::string> vec;
-				vec.reserve(params.size());
-				std::string buf;
-				buf.reserve(64ull);
-				for (auto it{ params.begin() }; it != params.end(); ++it) {
-					if (str::endsWithAny(*it, ',', ';')) {
-						vec.emplace_back(buf + it->substr(0ull, it->size() - 2ull));
-						buf.clear();
+					vec.reserve(params.size());
+					std::string buf;
+					buf.reserve(64ull);
+					for (auto it{ params.begin() }; it != params.end(); ++it) {
+						if (str::endsWithAny(*it, ',', ';')) {
+							vec.emplace_back(buf + it->substr(0ull, it->size() - 2ull));
+								buf.clear();
+						}
+						else if (std::distance(it, params.end()) == 1) {
+							vec.emplace_back(buf + *it);
+							buf.clear();
+						}
+						//else if (const bool has_operator{ std::regex_match(*it, valid_operator, match_cfg) }, has_operand{ std::regex_match(*it, valid_operand, match_cfg) }; has_operator && has_operand) { // whole expression
+						//	vec.emplace_back(*it);
+						//}
+						else buf += *it;
 					}
-					else if (std::distance(it, params.end()) == 1) {
-						vec.emplace_back(buf + *it);
-						buf.clear();
-					}
-					//else if (const bool has_operator{ std::regex_match(*it, valid_operator, match_cfg) }, has_operand{ std::regex_match(*it, valid_operand, match_cfg) }; has_operator && has_operand) { // whole expression
-					//	vec.emplace_back(*it);
-					//}
-					else buf += *it;
-				}
 				vec.shrink_to_fit();
 				return vec;
 			}(parameters)) {
@@ -630,7 +659,23 @@ int main(const int argc, char** argv)
 				buffer << color() << '\n';
 			}
 		}
-		else throw make_exception("Nothing to do; no mode was specified!");
+		// EXP / POW
+		else if (checkarg('e', "exp", true) || checkarg(std::nullopt, "pow", true)) {
+
+			std::stringstream ss;
+			if (hasPendingDataSTDIN())
+				ss << std::cin.rdbuf();
+			if (const auto& params{ args.typegetv_all<opt::Parameter>() }; !params.empty())
+				ss << str::join(params, ' ');
+			const auto& expressions{ str::split_all(ss.str(), ",;") };
+
+			if (expressions.empty())
+				throw make_exception("No exponent expressions were specified!");
+
+			for (const auto& expr : expressions)
+				std::cout << exponents::getOperationResult(expr, quiet).first << std::endl;
+		}
+		else throw make_custom_exception<argument_exception>("Nothing to do; no mode was specified!");
 
 		returnCode = 0;
 	} catch (const std::exception& ex) {
