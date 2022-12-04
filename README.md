@@ -11,7 +11,7 @@ As of version [0.2.2](https://github.com/radj307/conv-utils/releases/0.2.1), the
 
 | Utility Name | Type       | Purpose                                                                                                               |
 |--------------|------------|-----------------------------------------------------------------------------------------------------------------------|
-| Data Size    | Converter  | Converting between (B, kB, MB, etc.)                                                                                  |
+| Data Size    | Converter  | Converting between (B, kB, MB, GB, etc.)                                                                                  |
 | Hexadecimal  | Converter  | Converts between decimal & hexadecimal.                                                                               |
 | Modulo       | Calculator | Calculate integer or floating-point modulo operations.                                                                |
 | Length Units | Converter  | Converts between metric & imperial length units. Supports all known imperial units, and all standard metric prefixes. |
