@@ -1,12 +1,27 @@
 #include "version.h"
+#include "StreamFormatter.hpp"
 
 #include <TermAPI.hpp>
-#include <ParamsAPI2.hpp>
+#include <opt3.hpp>
 #include <palette.hpp>
 #include <hasPendingDataSTDIN.h>
 
 #include <iostream>
 #include <iomanip>
+
+#include <data.hpp>			// DATA
+#include <base.hpp>			// HEX
+#include <modulo.hpp>		// MODULO
+#include <length.hpp>		// LENGTH
+#include <ascii.hpp>		// ASCII
+#include <radians.hpp>		// RADIANS
+#include <FOV.hpp>			// FOV
+#include <bitwise.hpp>		// BITWISE
+#include <temperature.hpp>  // TEMPERATURE
+#include <exponents.hpp>	// POW / EXP
+//#include <arithmetic.hpp>	// ARITHMETIC
+
+#include "operators.hpp"
 
 struct PrintHelp {
 private:
@@ -39,14 +54,15 @@ public:
 				<< "MODES:\n"
 				<< "  -d, --data              Data Size Conversions. (B, kB, MB, GB, etc.)" << '\n'
 				<< "  -x, --hex               Hexadecimal <=> Decimal Conversions." << '\n'
-				<< "  -B, --base              Number representation base conversions. (Binary, Octal, Decimal, Hexadecimal)" << '\n'
+				// TODO: << "  -B, --base              Number representation base conversions. (Binary, Octal, Decimal, Hexadecimal)" << '\n'
 				<< "  -m, --mod               Modulo Calculator." << '\n'
-				<< "  -l, --len               Length Unit Conversions. (meters, feet, etc.)" << '\n'
+				<< "  -l, --len               Length Unit Conversions. (meters, feet, Bethesda-units, etc.)" << '\n'
 				<< "  -a, --ascii             ASCII Table Lookup Tool. Converts all characters to their ASCII values." << '\n'
 				<< "  -R, --rad               Degrees <=> Radians Converter." << '\n'
 				<< "  -F, --FOV <H:V>         Horizontal <=> Vertical Field of View Converter. Requires an aspect ratio, ex: \"16:9\"." << '\n'
 				<< "  -b, --bitwise           Perform bitwise calculations on binary, decimal, and/or hexadecimal numbers." << '\n'
 				<< "  -e, --exp, --pow        Exponent Calculator.  Use a comma ',' (shell) or semicolon ';' (string) between expressions." << '\n'
+				<< "  -t, --temp              Temperature Converter. Converts between Celcius, Kelvin, & Fahrenheit." << '\n'
 				;
 		}
 		else { // scoped help
@@ -56,6 +72,7 @@ public:
 			// temporary buffer
 			std::stringstream buffer;
 			buffer << "MODE:\n";
+			// DATA HELP
 			if (str::equalsAny(subject, "d", "data")) {
 				buffer
 					<< "  -d  --data              Data Size Conversions. (B, kB, MB, GB, etc.)" << '\n'
@@ -70,6 +87,7 @@ public:
 					<< "  Unit symbols are case-sensitive while full names are case-insensitive." << '\n'
 					;
 			}
+			// HEXADECIMAL HELP
 			else if (str::equalsAny(subject, "x", "hex", "hexadecimal")) {
 				buffer
 					<< "  -x  --hex               Hexadecimal <=> Decimal Conversions." << '\n'
@@ -86,6 +104,7 @@ public:
 					<< "  If neither of the above are true for an input, it is assumed to be in base-10." << '\n'
 					;
 			}
+			// BASE HELP
 			else if (str::equalsAny(subject, "B", "base")) {
 				buffer
 					<< "  -B  --base              Number representation base conversions. (Binary, Octal, Decimal, Hexadecimal)" << '\n'
@@ -97,6 +116,7 @@ public:
 					<< ""
 					;
 			}
+			// MODULO HELP
 			else if (str::equalsAny(subject, "m", "mod", "modulo")) {
 				buffer
 					<< "  -m  --mod               Modulo Calculator." << '\n'
@@ -109,6 +129,7 @@ public:
 					<< "  Inputs can either be in the format \"<NUMBER> <MOD>\" or without spaces as \"<NUMBER>%<MOD>\"."
 					;
 			}
+			// LENGTH HELP
 			else if (str::equalsAny(subject, "l", "len", "length")) {
 				buffer
 					<< "  -l  --len               Length Unit Conversions. (meters, feet, etc.)" << '\n'
@@ -125,6 +146,7 @@ public:
 					<< "  Both the American spelling \"meter\" and the British spelling \"metre\" are accepted." << '\n'
 					;
 			}
+			// ASCII HELP
 			else if (str::equalsAny(subject, "a", "asc", "ascii")) {
 				buffer
 					<< "  -a  --ascii             ASCII Table Lookup Tool. Converts all characters to their ASCII values." << '\n'
@@ -147,6 +169,7 @@ public:
 					<< "  converted to their textual representations." << '\n'
 					;
 			}
+			// RADIANS HELP
 			else if (str::equalsAny(subject, "R", "rad", "radian", "radians")) {
 				buffer
 					<< "  -R  --rad               Degrees <=> Radians Converter." << '\n'
@@ -159,6 +182,7 @@ public:
 					<< "  Inputs are assumed to be in Degrees unless the letter 'c' or 'r' is appended to them." << '\n'
 					;
 			}
+			// FOV HELP
 			else if (str::equalsAny(subject, "F", "FOV")) {
 				buffer
 					<< "  -F  --FOV <H:V>         Horizontal <=> Vertical Field of View Converter. Requires an aspect ratio, ex: \"16:9\"." << '\n'
@@ -177,6 +201,7 @@ public:
 					<< "  If no orientation is specified, Horizontal is used by default." << '\n'
 					;
 			}
+			// BITWISE HELP
 			else if (str::equalsAny(subject, "b", "bitwise")) {
 				buffer
 					<< "  -b  --bitwise           Perform bitwise calculations on binary, decimal, and/or hexadecimal numbers." << '\n'
@@ -212,9 +237,10 @@ public:
 					<< "       `cat \"file\" | conv2 -bx`" << '\n'
 					;
 			}
+			// EXPONENT HELP
 			else if (str::equalsAny(subject, "e", "exp", "pow")) {
 				buffer
-					<< "  -e, --exp, --pow        Exponent Calculator." << '\n'
+					<< "  -e, --exp, --pow        Exponent Calculator.  Use a comma ',' (shell) or semicolon ';' (string) between expressions." << '\n'
 					<< '\n'
 					<< "USAGE:\n"
 					<< "  Any uncaptured commandline parameters are used as input." << '\n'
@@ -230,79 +256,20 @@ public:
 					<< "    5 ^ (25 ^ 2)" << '\n'
 					;
 			}
+			// TEMPERATURE HELP
+			else if (str::equalsAny(subject, "t", "temp", "temperature")) {
+				buffer
+					<< "  -t, --temp              Temperature system converter." << '\n'
+					<< '\n'
+					<< "USAGE:\n"
+					<< "  conv2 <-t|--temp>  <<<VALUE><INPUT_UNIT> <OUTPUT_UNIT>> ...>"
+					<< '\n'
+					<< "  Any uncaptured commandline parameters are used as input." << '\n'
+					<< "  You must seperate negative input values from the input unit with at least one space." << '\n';
+			}
 			else throw make_exception("Unrecognized help subject: \"", h._param, "\"!");
 			os << buffer.rdbuf();
 		}
-		return os;
-	}
-};
-
-#include <data.hpp>			// DATA
-#include <base.hpp>			// HEX
-#include <modulo.hpp>		// MODULO
-#include <length.hpp>		// LENGTH
-#include <ascii.hpp>		// ASCII
-#include <radians.hpp>		// RADIANS
-#include <FOV.hpp>			// FOV
-#include <bitwise.hpp>		// BITWISE
-#include <arithmetic.hpp>	// ARITHMETIC
-#include <exponents.hpp>	// POW / EXP
-
-#include "operators.hpp"
-
-/**
- * @struct	StreamFormatter
- * @brief	Handles output stream formatting arguments.
- */
-struct StreamFormatter {
-	const opt::ParamsAPI2* args;
-	bool
-		showbase,
-		precision,
-		fixed,
-		scientific,
-		hexfloat;
-	StreamFormatter(const opt::ParamsAPI2* args) : args{ args },
-		showbase{ args->check<opt::Option>("showbase") },
-		precision{ args->check<opt::Option>("precision") },
-		fixed{ args->check<opt::Option>("fixed") },
-		scientific{ args->check<opt::Option>("scientific") },
-		hexfloat{ args->check<opt::Option>("hexfloat") }
-	{}
-
-	/**
-	 * @brief		Apply stream formatting flags to the given output stream.
-	 * @param os	(implicit) Output Stream Reference.
-	 * @param fmt	(implicit) StreamFormatter Instance.
-	 * @returns		std::ostream&
-	 */
-	friend std::ostream& operator<<(std::ostream& os, const StreamFormatter& fmt)
-	{
-		// SHOWBASE
-		if (fmt.showbase)
-			os << std::showbase;
-
-		// PRECISION
-		if (fmt.precision) {
-			if (const auto& precision{ fmt.args->typegetv<opt::Option>("precision") }; precision.has_value()) {
-				if (const auto& value{ precision.value() }; std::all_of(value.begin(), value.end(), isdigit))
-					os << std::setprecision(str::stoll(value));
-				else throw make_exception("\"", value, "\" isn't a valid integer!");
-			}
-			else throw make_exception("\"--precision\" requires an integer to specify the decimal precision!");
-		}
-
-		// NOTATIONS
-		if ((fmt.fixed & fmt.scientific & fmt.hexfloat) != 0) // make sure only one notation arg was set
-			throw make_exception("Cannot specify multiple notation arguments! (--fixed, --scientific, --hexfloat)");
-
-		if (fmt.fixed)
-			os << std::fixed;
-		else if (fmt.scientific)
-			os << std::scientific;
-		else if (fmt.hexfloat)
-			os << std::hexfloat;
-
 		return os;
 	}
 };
@@ -334,39 +301,22 @@ int main(const int argc, char** argv)
 
 	try {
 		// parse arguments
-		opt::Args args{ argc, argv, 'h', "help", 'F', "FOV", 'V' };
-
-		// @brief	Lambda that checks if either the given flag or option were included on the commandline.
-		const auto& checkarg{ [&args](const std::optional<char>& flag, const std::optional<std::string>& opt, const bool& require_first = false) {
-			if (require_first) {
-				if (!args.empty()) {
-					const auto& fst{ args.at(0ull) };
-					if (const auto& f = std::get_if<opt::Flag>(&fst))
-						return flag.has_value() && flag.value() == f->flag();
-					else if (const auto& o = std::get_if<opt::Option>(&fst))
-						return opt.has_value() && opt.value() == o->name();
-				}
-				return false;
-			}
-			if (flag.has_value() && opt.has_value())
-				return args.check_any<opt::Flag, opt::Option>(flag.value(), opt.value());
-			else if (flag.has_value())
-				return args.check_any<opt::Flag>(flag.value());
-			else if (opt.has_value())
-				return args.check_any<opt::Option>(opt.value());
-			return false;
-		} };
+		opt3::ArgManager args{ argc, argv,
+			opt3::make_template(opt3::ConflictStyle::CapturesConflict, opt3::CaptureStyle::Optional, 'h', "help"),
+			opt3::make_template(opt3::ConflictStyle::Conflict, opt3::CaptureStyle::Required, 'F', "FOV"),
+			'V'
+		};
 
 		// handle blocking arguments
-		color.setActive(!checkarg('n', "no-color"));
-		bool quiet{ checkarg('q', "quiet") };
-		bool numGrouping{ checkarg('g', "group") };
+		color.setActive(!args.check_any<opt3::Flag, opt3::Option>('n', "no-color"));
+		bool quiet{ args.check_any<opt3::Flag, opt3::Option>('q', "quiet") };
+		bool numGrouping{ args.check_any<opt3::Flag, opt3::Option>('g', "group") };
 
 		// [-h|--help]
-		if (args.empty() || checkarg('h', "help"))
+		if (args.empty() || args.check_any<opt3::Flag, opt3::Option>('h', "help"))
 			throw make_custom_exception<argument_exception>("No arguments were specified!");
 		// [-v|--version]
-		else if (checkarg('v', "version")) {
+		else if (args.check_any<opt3::Flag, opt3::Option>('v', "version")) {
 			std::cout << (quiet ? "" : "conv2  v") << CONV2_VERSION << std::endl;
 			return 0;
 		}
@@ -384,14 +334,14 @@ int main(const int argc, char** argv)
 					parameters.reserve(parameters.size() + expand_by);
 			}
 		}
-		for (const auto& it : args.typegetv_all<opt::Parameter>())
+		for (const auto& it : args.getv_all<opt3::Parameter>())
 			parameters.emplace_back(it);
 
 		StreamFormatter streamfmt{ &args };
 		buffer << streamfmt;
 
 		// DATA
-		if (checkarg('d', "data", true)) {
+		if (const auto& dataArg{ args.get_any<opt3::Option, opt3::Flag>('d', "data") }; dataArg.has_value() && dataArg.value() == args.at(0)) {
 			for (std::vector<std::string>::const_iterator arg{ parameters.begin() }; arg != parameters.end(); ++arg) {
 				if (const auto conv{ data::Conversion(arg, parameters.end()) }; conv._in.has_value() && conv._out.has_value()) {
 					if (!quiet) { // print input values
@@ -409,7 +359,7 @@ int main(const int argc, char** argv)
 			}
 		}
 		// HEX
-		else if (checkarg('x', "hex", true)) {
+		else if (const auto& hexArg{ args.get_any<opt3::Option, opt3::Flag>('x', "hex", "hexadecimal") }; hexArg.has_value() && hexArg.value() == args.at(0)) {
 			for (const auto& it : parameters) {
 				if (!quiet)
 					buffer << color(OUTCOLOR::INPUT) << it << color() << ' ' << color(OUTCOLOR::OPERATOR) << '=' << color() << ' ';
@@ -427,7 +377,7 @@ int main(const int argc, char** argv)
 			}
 		}
 		// BASE
-		else if (checkarg('B', "base")) {
+		else if (const auto& baseArg{ args.get_any<opt3::Option, opt3::Flag>('B', "base") }; baseArg.has_value() && baseArg.value() == args.at(0)) {
 			const auto& splitArg{ [](const std::string& str) -> std::pair<int, std::string> {
 				int base{ 10 };
 				std::string value{ 0ll };
@@ -441,7 +391,7 @@ int main(const int argc, char** argv)
 
 			std::pair<int, std::string> in;
 			int outBase{ 10 };
-
+			// TODO: Finish base conversion mode
 			const auto& calculate{ [&in, &outBase]() {
 
 			} };
@@ -451,7 +401,7 @@ int main(const int argc, char** argv)
 			}
 		}
 		// MODULO
-		else if (checkarg('m', "mod", true)) {
+		else if (const auto& modArg{ args.get_any<opt3::Option, opt3::Flag>('m', "mod", "modulo") }; modArg.has_value() && modArg.value() == args.at(0)) {
 			for (auto it{ parameters.begin() }; it != parameters.end(); ++it) {
 				std::string here{ *it }, next{ "" };
 				if (const auto& pos{ here.find('%') }; pos != std::string::npos) {
@@ -477,7 +427,7 @@ int main(const int argc, char** argv)
 			}
 		}
 		// LENGTH
-		else if (checkarg('l', "len", true)) {
+		else if (const auto& lengthArg{ args.get_any<opt3::Option, opt3::Flag>('l', "len", "length") }; lengthArg.has_value() && lengthArg.value() == args.at(0)) {
 			const auto& is_value{ [](const std::string_view& str) -> bool {
 				return std::all_of(str.begin(), str.end(), [](auto&& c) {return isdigit(c) || c == '.' || c == '-'; });
 			} };
@@ -493,18 +443,19 @@ int main(const int argc, char** argv)
 				if (std::distance(it, parameters.end()) >= 2ll) {
 					const auto& [in_unit, value, out_unit] { length::Convert(get_tuple(it))._vars };
 					const auto result{ length::Convert::getResult(in_unit, value, out_unit) };
-					if (!quiet)
-						buffer << color(OUTCOLOR::INPUT) << value << color() << ' ' << in_unit << ' ' << color(OUTCOLOR::OPERATOR) << '=' << color() << ' ';
-					buffer << color(OUTCOLOR::OUTPUT) << result << color() << '\n';
+					if (!quiet) buffer << color(OUTCOLOR::INPUT) << value << color() << ' ' << in_unit << ' ' << color(OUTCOLOR::OPERATOR) << '=' << color() << ' ';
+					buffer << color(OUTCOLOR::OUTPUT) << result << color();
+					if (!quiet) buffer << ' ' << out_unit;
+					buffer << '\n';
 				}
 			}
 		}
 		// ASCII
-		else if (checkarg('a', "ascii", true)) {
+		else if (const auto& asciiArg{ args.get_any<opt3::Option, opt3::Flag>('a', "asc", "ascii") }; asciiArg.has_value() && asciiArg.value() == args.at(0)) {
 			const bool&
-				disallowReverseConversion{ checkarg('N', "numeric") },
-				signedRange{ checkarg('s', "signed") },
-				onePerLine{ checkarg(std::nullopt, "linear") };
+				disallowReverseConversion{ args.check_any<opt3::Flag, opt3::Option>('N', "numeric") },
+				signedRange{ args.check_any<opt3::Flag, opt3::Option>('s', "signed") },
+				onePerLine{ args.check_any<opt3::Flag, opt3::Option>("linear") };
 
 			for (auto it{ parameters.begin() }; it != parameters.end(); ++it) {
 				// Allow Reverse Lookup:
@@ -549,7 +500,7 @@ int main(const int argc, char** argv)
 			}
 		}
 		// RADIANS
-		else if (checkarg('R', "rad", true)) {
+		else if (const auto& radianArg{ args.get_any<opt3::Option, opt3::Flag>('R', "rad", "radians") }; radianArg.has_value() && radianArg.value() == args.at(0)) {
 			for (const auto& it : parameters) {
 				std::string lower{ str::tolower(it) };
 
@@ -572,9 +523,10 @@ int main(const int argc, char** argv)
 			}
 		}
 		// FOV
-		else if (checkarg('F', "FOV", true)) {
-			const auto& fov{ args.typegetv_any<opt::Flag, opt::Option>('F', "FOV") };
-			const bool& radians{ checkarg('R', "rad") }, & round{ checkarg('r', "round") };
+		else if (const auto& fovArg{ args.get_any<opt3::Option, opt3::Flag>('F', "FOV") }; fovArg.has_value() && fovArg.value() == args.at(0)) {
+			const auto& fov{ args.getv_any<opt3::Flag, opt3::Option>('F', "FOV") };
+			const bool& radians{ args.check_any<opt3::Flag, opt3::Option>('R', "rad") },
+				& round{ args.check_any<opt3::Flag, opt3::Option>('r', "round") };
 
 			if (!fov.has_value())
 				throw make_exception("Detected mode: FOV\n", indent(10), "No aspect ratio was specified!");
@@ -615,15 +567,15 @@ int main(const int argc, char** argv)
 			}
 		}
 		// BITWISE
-		else if (checkarg('b', "bitwise", true)) {
+		else if (const auto& bitwiseArg{ args.get_any<opt3::Option, opt3::Flag>('b', "bitwise") }; bitwiseArg.has_value() && bitwiseArg.value() == args.at(0)) {
 
 			bool binary{ false }; // no fmtflag for binary
 			std::ios_base& (*fmtFunction)(std::ios_base&) = &std::dec;
-			if (checkarg('O', "octal"))
+			if (args.check_any<opt3::Flag, opt3::Option>('O', "octal"))
 				fmtFunction = &std::oct;
-			else if (checkarg('x', "hex"))
+			else if (args.check_any<opt3::Flag, opt3::Option>('x', "hex"))
 				fmtFunction = &std::hex;
-			else if (checkarg('B', "binary"))
+			else if (args.check_any<opt3::Flag, opt3::Option>('B', "binary"))
 				binary = true;
 
 			for (const auto& expr : [/*&valid_operand, &valid_operator, &match_cfg*/](auto&& params) {
@@ -660,12 +612,11 @@ int main(const int argc, char** argv)
 			}
 		}
 		// EXP / POW
-		else if (checkarg('e', "exp", true) || checkarg(std::nullopt, "pow", true)) {
-
+		else if (const auto& powArg{ args.get_any<opt3::Option, opt3::Flag>('e', "exp", "pow") }; powArg.has_value() && powArg.value() == args.at(0)) {
 			std::stringstream ss;
 			if (hasPendingDataSTDIN())
 				ss << std::cin.rdbuf();
-			if (const auto& params{ args.typegetv_all<opt::Parameter>() }; !params.empty())
+			if (const auto& params{ args.getv_all<opt3::Parameter>() }; !params.empty())
 				ss << str::join(params, ' ');
 			const auto& expressions{ str::split_all(ss.str(), ",;") };
 
@@ -674,6 +625,22 @@ int main(const int argc, char** argv)
 
 			for (const auto& expr : expressions)
 				std::cout << exponents::getOperationResult(expr, quiet).first << std::endl;
+		}
+		// TEMPERATURE
+		else if (const auto& tempArg{ args.get_any<opt3::Option, opt3::Flag>('t', "temp", "temperature") }; tempArg.has_value() && tempArg.value() == args.at(0)) {
+			const std::vector<std::string>& params{ args.getv_all<opt3::Parameter>() };
+
+			const auto& conversions{ conv::temperature_parse_arguments<long double>(params) };
+
+			using conv2::color;
+			for (const auto& conversion : conversions) {
+				const auto& result{ conversion.getResult() };
+				std::cout
+					<< color(OUTCOLOR::INPUT) << conversion.temperature_value.value << color() << conv::getTemperatureSystemSymbol(conversion.temperature_value.system)
+					<< color(OUTCOLOR::OPERATOR) << " = " << color()
+					<< color(OUTCOLOR::OUTPUT) << result.value << color() << conv::getTemperatureSystemSymbol(result.system)
+					<< '\n';
+			}
 		}
 		else throw make_custom_exception<argument_exception>("Nothing to do; no mode was specified!");
 

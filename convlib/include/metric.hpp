@@ -6,8 +6,12 @@
 #pragma once
 #include <str.hpp>
 
+#include <math.hpp>
+
 namespace metric {
-	enum class Prefix : char {
+	enum class Prefix : std::int8_t {
+		QUECTO = -30,
+		RONTO = -27,
 		YOCTO = -24,
 		ZEPTO = -21,
 		ATTO = -18,
@@ -29,6 +33,8 @@ namespace metric {
 		EXA = 18,
 		ZETTA = 21,
 		YOTTA = 24,
+		RONNA = 27,
+		QUETTA = 30,
 	};
 
 	/**
@@ -66,6 +72,10 @@ namespace metric {
 					return Prefix::PETA;
 
 				if (str.size() >= 5ull) {
+					if (str::startsWith(str, "ronto"))
+						return Prefix::RONTO;
+					if (str::startsWith(str, "quecto"))
+						return Prefix::QUECTO;
 					if (str::startsWith(str, "yocto"))
 						return Prefix::YOCTO;
 					if (str::startsWith(str, "zepto"))
@@ -84,13 +94,17 @@ namespace metric {
 						return Prefix::ZETTA;
 					if (str::startsWith(str, "yotta"))
 						return Prefix::YOTTA;
+					if (str::startsWith(str, "ronna"))
+						return Prefix::RONNA;
+					if (str::startsWith(str, "quetta"))
+						return Prefix::QUETTA;
 				}
 			}
 		}
 		return Prefix::BASE;
 	}
 	/**
-	 * @brief		Parse a string to identify metric prefix symbols. (Ex: "n-", "µ-", "m-", "k-", "M-", "G-", etc.)
+	 * @brief		Parse a string to identify metric prefix symbols. (Ex: "n-", "ï¿½-", "m-", "k-", "M-", "G-", etc.)
 	 * @param str	Input String.
 	 * @returns		Prefix
 	 */
@@ -98,6 +112,10 @@ namespace metric {
 	{
 		if (str.size() >= 1ull) {
 			switch (str.at(0ull)) {
+			case 'q':
+				return Prefix::QUECTO;
+			case 'r':
+				return Prefix::RONTO;
 			case 'y':
 				return Prefix::YOCTO;
 			case 'z':
@@ -110,8 +128,8 @@ namespace metric {
 				return Prefix::PICO;
 			case 'n':
 				return Prefix::NANO;
-			case 'u': [[fallthrough]];
-			case 'µ':
+			case 'u':// [[fallthrough]];
+			//case 'Âµ':
 				return Prefix::MICRO;
 			case 'm':
 				return Prefix::MILLI;
@@ -139,6 +157,10 @@ namespace metric {
 				return Prefix::ZETTA;
 			case 'Y':
 				return Prefix::YOTTA;
+			case 'R':
+				return Prefix::RONNA;
+			case 'Q':
+				return Prefix::QUETTA;
 			default:
 				return Prefix::BASE;
 			}

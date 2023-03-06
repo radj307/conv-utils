@@ -27,6 +27,7 @@ namespace length {
 	enum class SystemID : char {
 		METRIC,
 		IMPERIAL,
+		CREATIONKIT,
 		ALL,
 	};
 
@@ -40,7 +41,10 @@ namespace length {
 		WINCONSTEXPR Unit(SystemID const& system, long double const& unit_conversion_factor, std::string_view const& symbol, std::string_view const& full_name = {}) : _system{ system }, unitcf{ unit_conversion_factor }, _sym{ symbol }, _name{ full_name } {}
 
 		/// @brief	Retrieve the given value in it's base form.
-		CONSTEXPR long double to_base(const long double& val) const { return val * unitcf; }
+		CONSTEXPR long double to_base(const long double& val) const
+		{
+			return val * unitcf;
+		}
 		CONSTEXPR SystemID getSystem() const noexcept { return _system; }
 		WINCONSTEXPR std::string getName() const noexcept { return (_name.empty() ? _sym : _name); }
 		WINCONSTEXPR std::string getSymbol() const noexcept { return _sym; }
@@ -66,6 +70,13 @@ namespace length {
 	 */
 	static struct : public System { // SystemID::METRIC
 		const std::vector<U> units{
+			{ SystemID::METRIC, std::pow(10.0L, static_cast<T>(Prefix::QUECTO)), "qm", "Quectometer" },
+			{ SystemID::METRIC, std::pow(10.0L, static_cast<T>(Prefix::RONTO)), "rm", "Rontometer" },
+			{ SystemID::METRIC, std::pow(10.0L, static_cast<T>(Prefix::YOCTO)), "ym", "Yoctometer" },
+			{ SystemID::METRIC, std::pow(10.0L, static_cast<T>(Prefix::ZEPTO)), "zm", "Zeptometer" },
+			{ SystemID::METRIC, std::pow(10.0L, static_cast<T>(Prefix::ATTO)), "am", "Attometer" },
+			{ SystemID::METRIC, std::pow(10.0L, static_cast<T>(Prefix::FEMTO)), "fm", "Femtometer" },
+
 			{ SystemID::METRIC, std::pow(10.0L, static_cast<T>(Prefix::PICO)), "pm", "Picometer" },
 			{ SystemID::METRIC, std::pow(10.0L, static_cast<T>(Prefix::NANO)), "nm", "Nanometer" },
 			{ SystemID::METRIC, std::pow(10.0L, static_cast<T>(Prefix::MICRO)), "um", "Micrometer" },
@@ -78,22 +89,43 @@ namespace length {
 			{ SystemID::METRIC, std::pow(10.0L, static_cast<T>(Prefix::KILO)), "km", "Kilometer" },
 			{ SystemID::METRIC, std::pow(10.0L, static_cast<T>(Prefix::MEGA)), "Mm", "Megameter" },
 			{ SystemID::METRIC, std::pow(10.0L, static_cast<T>(Prefix::GIGA)), "Gm", "Gigameter" },
-			{ SystemID::METRIC, std::pow(10.0L, static_cast<T>(Prefix::TERA)), "Tm", "Terameter" }
+			{ SystemID::METRIC, std::pow(10.0L, static_cast<T>(Prefix::TERA)), "Tm", "Terameter" },
+
+			{ SystemID::METRIC, std::pow(10.0L, static_cast<T>(Prefix::PETA)), "Pm", "Petameter" },
+			{ SystemID::METRIC, std::pow(10.0L, static_cast<T>(Prefix::EXA)), "Em", "Exameter" },
+			{ SystemID::METRIC, std::pow(10.0L, static_cast<T>(Prefix::ZETTA)), "Zm", "Zettameter" },
+			{ SystemID::METRIC, std::pow(10.0L, static_cast<T>(Prefix::YOTTA)), "Ym", "Yottameter" },
+			{ SystemID::METRIC, std::pow(10.0L, static_cast<T>(Prefix::RONNA)), "Rm", "Ronnameter" },
+			{ SystemID::METRIC, std::pow(10.0L, static_cast<T>(Prefix::QUETTA)), "Qm", "Quettameter" },
 		};
 
-		const U* PICOMETER{ &units[0] };
-		const U* NANOMETER{ &units[1] };
-		const U* MICROMETER{ &units[2] };
-		const U* MILLIMETER{ &units[3] };
-		const U* CENTIMETER{ &units[4] };
-		const U* DECIMETER{ &units[5] };
-		const U* METER{ &units[6] };
-		const U* DECAMETER{ &units[7] };
-		const U* HECTOMETER{ &units[8] };
-		const U* KILOMETER{ &units[9] };
-		const U* MEGAMETER{ &units[10] };
-		const U* GIGAMETER{ &units[11] };
-		const U* TERAMETER{ &units[12] };
+		const U* QUECTOMETER{ &units[0] };
+		const U* RONTOMETER{ &units[1] };
+		const U* YOCTOMETER{ &units[2] };
+		const U* ZEPTOMETER{ &units[3] };
+		const U* ATTOMETER{ &units[4] };
+		const U* FEMTOMETER{ &units[5] };
+
+		const U* PICOMETER{ &units[6] };
+		const U* NANOMETER{ &units[7] };
+		const U* MICROMETER{ &units[8] };
+		const U* MILLIMETER{ &units[9] };
+		const U* CENTIMETER{ &units[10] };
+		const U* DECIMETER{ &units[11] };
+		const U* METER{ &units[12] };
+		const U* DECAMETER{ &units[13] };
+		const U* HECTOMETER{ &units[14] };
+		const U* KILOMETER{ &units[15] };
+		const U* MEGAMETER{ &units[16] };
+		const U* GIGAMETER{ &units[17] };
+		const U* TERAMETER{ &units[18] };
+
+		const U* PETAMETER{ &units[19] };
+		const U* EXAMETER{ &units[20] };
+		const U* ZETTAMETER{ &units[21] };
+		const U* YOTTAMETER{ &units[22] };
+		const U* RONNAMETER{ &units[23] };
+		const U* QUETTAMETER{ &units[24] };
 
 		// the base unit of the Metric system (meters)
 		const U* const base{ METER };
@@ -145,6 +177,46 @@ namespace length {
 		const U* const base{ FOOT };
 	} Imperial;
 
+	/**
+	 * @struct	BethesdaGames
+	 * @brief	Measurement system used by Bethesda's creation kit engine. (Elder Scrolls, Fallout, etc.)
+	 */
+	static struct : public System { // SystemID::CREATIONKIT
+		const std::vector<Unit> units{
+			{ SystemID::CREATIONKIT, std::pow(10.0L, static_cast<T>(Prefix::PICO)), "pu", "Picounit" },
+			{ SystemID::CREATIONKIT, std::pow(10.0L, static_cast<T>(Prefix::NANO)), "nu", "Nanounit" },
+			{ SystemID::CREATIONKIT, std::pow(10.0L, static_cast<T>(Prefix::MICRO)), "uu", "Microunit" },
+			{ SystemID::CREATIONKIT, std::pow(10.0L, static_cast<T>(Prefix::MILLI)), "mu", "Milliunit" },
+			{ SystemID::CREATIONKIT, std::pow(10.0L, static_cast<T>(Prefix::CENTI)), "cu", "Centiunit" },
+			{ SystemID::CREATIONKIT, std::pow(10.0L, static_cast<T>(Prefix::DECI)), "du", "Deciunit" },
+			{ SystemID::CREATIONKIT, std::pow(10.0L, static_cast<T>(Prefix::BASE)), "u", "Unit" },
+			{ SystemID::CREATIONKIT, std::pow(10.0L, static_cast<T>(Prefix::DECA)), "dau", "Decaunit" },
+			{ SystemID::CREATIONKIT, std::pow(10.0L, static_cast<T>(Prefix::HECTO)), "hu", "Hectounit" },
+			{ SystemID::CREATIONKIT, std::pow(10.0L, static_cast<T>(Prefix::KILO)), "ku", "Kilometer" },
+			{ SystemID::CREATIONKIT, std::pow(10.0L, static_cast<T>(Prefix::MEGA)), "Mu", "Megaunit" },
+			{ SystemID::CREATIONKIT, std::pow(10.0L, static_cast<T>(Prefix::GIGA)), "Gu", "Gigaunit" },
+			{ SystemID::CREATIONKIT, std::pow(10.0L, static_cast<T>(Prefix::TERA)), "Tu", "Teraunit" }
+		};
+
+		const Unit* PICOUNIT{ &units[0] };
+		const Unit* NANOUNIT{ &units[1] };
+		const Unit* MICROUNIT{ &units[2] };
+		const Unit* MILLIUNIT{ &units[3] };
+		const Unit* CENTIUNIT{ &units[4] };
+		const Unit* DECIUNIT{ &units[5] };
+		const Unit* UNIT{ &units[6] };
+		const Unit* DECAUNIT{ &units[7] };
+		const Unit* HECTOUNIT{ &units[8] };
+		const Unit* KILOUNIT{ &units[9] };
+		const Unit* MEGAUNIT{ &units[10] };
+		const Unit* GIGAUNIT{ &units[11] };
+		const Unit* TERAUNIT{ &units[12] };
+
+		// the base unit of this system
+		const Unit* const base{ UNIT };
+	} Bethesda;
+
+
 	/// @brief	Inter-System (Metric:Imperial) Conversion Factor
 	const constexpr auto ONE_FOOT_IN_METERS{ 0.3048L };
 	/// @brief	Inter-System (CKUnit:Metric) Conversion Factor
@@ -159,7 +231,7 @@ namespace length {
 	 */
 	inline constexpr long double convert_unit(const long double& in_unitcf, const long double& v, const long double& out_unitcf)
 	{
-		if (math::equal(out_unitcf, 0.0L))
+		if (out_unitcf == 0.0L)
 			throw make_exception("convert_unit() failed:  Cannot divide by zero!");
 		return ((v * in_unitcf) / out_unitcf);
 	}
@@ -174,12 +246,37 @@ namespace length {
 	{
 		if (in_system == out_system) // same system
 			return v_base;
-		if (in_system == SystemID::METRIC && out_system == SystemID::IMPERIAL)
-			return v_base / ONE_FOOT_IN_METERS;
-		if (in_system == SystemID::IMPERIAL && out_system == SystemID::METRIC)
-			return v_base * ONE_FOOT_IN_METERS;
+		// convert system
+		switch (in_system) {
+		case SystemID::METRIC:
+			switch (out_system) { // METRIC ->
+			case SystemID::IMPERIAL:
+				return v_base / ONE_FOOT_IN_METERS;
+			case SystemID::CREATIONKIT:
+				return v_base / ONE_UNIT_IN_METERS;
+			}
+			break;
+		case SystemID::IMPERIAL:
+			switch (out_system) { // IMPERIAL ->
+			case SystemID::METRIC:
+				return v_base * ONE_FOOT_IN_METERS;
+			case SystemID::CREATIONKIT:
+				return v_base / ONE_UNIT_IN_FEET;
+			}
+			break;
+		case SystemID::CREATIONKIT:
+			switch (out_system) { // CREATIONKIT ->
+			case SystemID::METRIC:
+				return v_base * ONE_UNIT_IN_METERS;
+			case SystemID::IMPERIAL:
+				return v_base * ONE_UNIT_IN_FEET;
+			}
+			break;
+		default:break;
+		}
 		throw make_exception("convert_system() failed:  No handler exists for the given input type!");
 	}
+
 
 	/**
 	 * @brief		Convert a number in a given unit to another unit and/or system.
@@ -257,6 +354,18 @@ namespace length {
 
 		// BEGIN METRIC //
 		// comparisons omit -er|-re to allow both the American and British spelling of "meter|metre".
+		if (str == "qm" || s.find("quectomet") < s.size())
+			return *Metric.QUECTOMETER;
+		if (str == "rm" || s.find("rontomet") < s.size())
+			return *Metric.RONTOMETER;
+		if (str == "ym" || s.find("yoctomet") < s.size())
+			return *Metric.YOCTOMETER;
+		if (str == "zm" || s.find("zeptomet") < s.size())
+			return *Metric.ZEPTOMETER;
+		if (str == "am" || s.find("attomet") < s.size())
+			return *Metric.ATTOMETER;
+		if (str == "fm" || s.find("femtomet") < s.size())
+			return *Metric.FEMTOMETER;
 		if (str == "pm" || s.find("picomet") < s.size())
 			return *Metric.PICOMETER;
 		if (str == "nm" || s.find("nanomet") < s.size())
@@ -281,10 +390,52 @@ namespace length {
 			return *Metric.GIGAMETER;
 		if (str == "Tm" || s.find("teramet") < s.size())
 			return *Metric.TERAMETER;
+		if (str == "Pm" || s.find("petamet") < s.size())
+			return *Metric.PETAMETER;
+		if (str == "Em" || s.find("examet") < s.size())
+			return *Metric.EXAMETER;
+		if (str == "Zm" || s.find("zettamet") < s.size())
+			return *Metric.ZETTAMETER;
+		if (str == "Ym" || s.find("yottamet") < s.size())
+			return *Metric.YOTTAMETER;
+		if (str == "Rm" || s.find("ronnamet") < s.size())
+			return *Metric.RONNAMETER;
+		if (str == "Qm" || s.find("quettamet") < s.size())
+			return *Metric.QUETTAMETER;
 		// this has to be checked after all prefix types
 		if (str == "m" || s.find("met") < s.size())
 			return *Metric.METER;
 		// END METRIC //
+
+		// BEGIN CREATIONKIT //
+		if (str == "pu" || s.find("picounit") < s.size())
+			return *Bethesda.PICOUNIT;
+		if (str == "nu" || s.find("nanounit") < s.size())
+			return *Bethesda.NANOUNIT;
+		if (str == "uu" || s.find("microunit") < s.size())
+			return *Bethesda.MICROUNIT;
+		if (str == "mu" || s.find("milliunit") < s.size())
+			return *Bethesda.MILLIUNIT;
+		if (str == "cu" || s.find("centiunit") < s.size())
+			return *Bethesda.CENTIUNIT;
+		if (str == "du" || s.find("deciunit") < s.size())
+			return *Bethesda.DECIUNIT;
+		if (str == "dau" || s.find("decaunit") < s.size())
+			return *Bethesda.DECAUNIT;
+		if (str == "hu" || s.find("hectounit") < s.size())
+			return *Bethesda.HECTOUNIT;
+		if (str == "ku" || s.find("kilounit") < s.size())
+			return *Bethesda.KILOUNIT;
+		if (str == "Mu" || s.find("megaunit") < s.size())
+			return *Bethesda.MEGAUNIT;
+		if (str == "Gu" || s.find("gigaunit") < s.size())
+			return *Bethesda.GIGAUNIT;
+		if (str == "Tu" || s.find("teraunit") < s.size())
+			return *Bethesda.TERAUNIT;
+		// this has to be checked after all prefix types
+		if (str == "u" || s.find("unit") < s.size())
+			return *Bethesda.UNIT;
+		// END CREATIONKIT //
 
 		if (def.has_value())
 			return def.value();
@@ -342,5 +493,4 @@ namespace length {
 
 		NumberT operator()() const { return getResult(std::get<0>(_vars), std::get<1>(_vars), std::get<2>(_vars)); }
 	};
-
 }

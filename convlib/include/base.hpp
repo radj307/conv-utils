@@ -5,6 +5,7 @@
 #include <str.hpp>
 #include <indentor.hpp>
 #include <strmath.hpp>
+#include <strcompare.hpp>
 
 namespace base {
 #	pragma region BaseEnum
@@ -78,9 +79,9 @@ namespace base {
 			return Base::HEXADECIMAL;
 		// fallback to checking string contents:
 		// don't check binary or octal because both must be explicitly specified and both contain all decimal digits.
-		else if (str::isdecimal(s))
+		else if (str::isnumber<double>(s, 10))
 			return Base::DECIMAL;
-		else if (str::ishex(s))
+		else if (std::all_of(s.begin(), s.end(), str::ishexdigit))
 			return Base::HEXADECIMAL;
 		// invalid number:
 		return Base::ZERO;

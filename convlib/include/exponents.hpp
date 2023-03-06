@@ -2,6 +2,7 @@
 #include "base.hpp"
 
 #include <str.hpp>
+#include <var.hpp>
 
 #include <ostream>
 #include <concepts>
@@ -67,7 +68,7 @@ namespace exponents {
 		{
 			return static_cast<TReturn>(this->getResult<long double>(str::stold));
 		}
-		template<var::Streamable... Ts>
+		template<var::streamable... Ts>
 		std::string getResultString(Ts&&... stream_formatting) const
 		{
 			if (hasFloatingPoint())

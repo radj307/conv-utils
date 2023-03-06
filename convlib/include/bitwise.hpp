@@ -166,7 +166,7 @@ namespace bitwise {
 		 */
 		[[nodiscard]] std::vector<TokenT> tokenize(const size_t& reserve_sz = 64ull)
 		{
-			return TokenizerBase::tokenize(TokenType::END, reserve_sz);
+			return TokenizerBase::tokenize(Token{ TokenType::END }, reserve_sz);
 		}
 	};
 
@@ -262,14 +262,14 @@ namespace bitwise {
 		operation(const Operator& type, variant_t&& left, variant_t&& right) : type{ type }, left{ std::move(left) }, right{ std::move(right) }
 		{
 			if (type == Operator::NONE || type == Operator::NEGATE)
-				throw make_custom_exception<exceptions::invalid_operation_except>(type, 1, 2);
+				throw ex::make_custom_exception_explicit<exceptions::invalid_operation_except>(type, 1, 2);
 
 			if (const bool leftNull{ !hasv(this->left) }, rightNull{ !hasv(this->right) }; leftNull && rightNull)
-				throw make_custom_exception<exceptions::invalid_operation_except>(type, 2, "both were null!");
+				throw ex::make_custom_exception_explicit<exceptions::invalid_operation_except>(type, 2, "both were null!");
 			else if (rightNull)
-				throw make_custom_exception<exceptions::invalid_operation_except>(type, 2, "the right operand was null!");
+				throw ex::make_custom_exception_explicit<exceptions::invalid_operation_except>(type, 2, "the right operand was null!");
 			else if (leftNull)
-				throw make_custom_exception<exceptions::invalid_operation_except>(type, 2, "the left operand was null!");
+				throw ex::make_custom_exception_explicit<exceptions::invalid_operation_except>(type, 2, "the left operand was null!");
 		}
 
 		/**
@@ -289,11 +289,11 @@ namespace bitwise {
 		operation(const Operator& type, variant_t&& value) : type{ type }, left{ std::move(value) }, right{ std::monostate{} }
 		{
 			if (type != Operator::NONE && type != Operator::NEGATE)
-				throw make_custom_exception<exceptions::invalid_operation_except>(type, 2, 1);
+				throw ex::make_custom_exception_explicit<exceptions::invalid_operation_except>(type, 2, 1);
 			if (!hasv(left))
-				throw make_custom_exception<exceptions::invalid_operation_except>(type, 1, "the left operand was null!");
+				throw ex::make_custom_exception_explicit<exceptions::invalid_operation_except>(type, 1, "the left operand was null!");
 			if (hasv(right))
-				throw make_custom_exception<exceptions::invalid_operation_except>(type, 1, 2);
+				throw ex::make_custom_exception_explicit<exceptions::invalid_operation_except>(type, 1, 2);
 		}
 
 		/**

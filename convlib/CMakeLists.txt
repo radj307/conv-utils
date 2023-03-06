@@ -1,10 +1,6 @@
 # convutils/convlib
 cmake_minimum_required(VERSION 3.20)
 
-if (MSVC)
-	set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
-endif()
-
 # Get library headers & source files
 file(GLOB HEADERS
 	RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
